@@ -476,6 +476,7 @@ public abstract class ApplicationFunctionalTest {
         expected.setForwardAuthToken(applicationDto.getForwardAuthToken());
         expected.setAppIdentity(applicationDto.getAppIdentity());
         expected.setAllowUserExternalServices(applicationDto.isAllowUserExternalServices());
+        expected.setBaseUrl(null);
 
         CoreApplication actual = applicationFacade.getCoreApplicationWithHash(applicationDto.getName()).core();
         actual.setCreatedAt(null);
@@ -888,7 +889,8 @@ public abstract class ApplicationFunctionalTest {
                         "parallel_tool_calls_supported": true,
                         "assistant_attachments_in_request_supported": false,
                         "max_tokens_supported": true,
-                        "custom_temperature_supported": true
+                        "custom_temperature_supported": true,
+                        "skills_supported": false
                       },
                       "defaults": {},
                       "responses_defaults": {},

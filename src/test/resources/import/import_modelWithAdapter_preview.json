@@ -74,7 +74,8 @@
           "adapterName": "adapter1",
           "completionEndpointPath": "testModel1/embeddings"
         },
-        "interfaces": {}
+        "interfaces": {},
+        "defaultHeaders": {}
       }
     },
     {
@@ -118,7 +119,8 @@
           "adapterName": "<will be defined during import 0>",
           "completionEndpointPath": "testModel2/embeddings"
         },
-        "interfaces": {}
+        "interfaces": {},
+        "defaultHeaders": {}
       }
     }
   ],

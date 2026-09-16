@@ -2,6 +2,15 @@
 
 All notable infrastructure-relevant changes to this project will be documented in this file.
 
+## 0.20.0
+
+### Added
+
+#### Configuration Management
+- `MS_SQL_SERVER_AZURE_JDBC_AUTH_MODE` — Azure JDBC authentication mode passed to the driver, e.g. `ActiveDirectoryMSI`, `ActiveDirectoryDefault` (default: `ActiveDirectoryMSI`; applies when `datasource.vendor=MS_SQL_SERVER` and `datasource.auth.type=azure`)
+
+---
+
 ## 0.17.0
 
 ### Added

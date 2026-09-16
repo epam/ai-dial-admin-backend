@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.service.config.export;
 import com.epam.aidial.cfg.service.config.impl.storage.ConfigSource;
 import com.epam.aidial.cfg.service.config.impl.storage.ConfigUtils;
 import com.epam.aidial.cfg.service.config.transfer.ConfigTransferLock;
+import com.epam.aidial.cfg.utils.UpstreamSecretUtils;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreApplication;
 import com.epam.aidial.core.config.CoreExternalService;
@@ -84,7 +85,7 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
                 .map(CoreModel::getUpstreams)
                 .stream()
                 .flatMap(Collection::stream)
-                .filter(upstream -> upstream.getKey() != null || upstream.getSecretExtraData() != null)
+                .filter(UpstreamSecretUtils::hasSecrets)
                 .collect(Collectors.toList());
 
         CoreModel model = CoreModel.empty();
@@ -97,7 +98,7 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
                 .map(CoreRoute::getUpstreams)
                 .stream()
                 .flatMap(Collection::stream)
-                .filter(upstream -> upstream.getKey() != null || upstream.getSecretExtraData() != null)
+                .filter(UpstreamSecretUtils::hasSecrets)
                 .collect(Collectors.toList());
 
         CoreRoute route = CoreRoute.empty();

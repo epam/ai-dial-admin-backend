@@ -26,6 +26,7 @@ import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.AssistantsPropertyDto;
 import com.epam.aidial.cfg.dto.AttachmentPathDto;
 import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
+import com.epam.aidial.cfg.dto.DeploymentInterfaceDto;
 import com.epam.aidial.cfg.dto.ExternalServiceDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.GlobalSettingsDto;
@@ -43,6 +44,7 @@ import com.epam.aidial.cfg.dto.TokenEndpointAuthMethodDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.dto.UpstreamDto;
+import com.epam.aidial.cfg.dto.UpstreamInterfaceDto;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto.ResourceAccessType;
 import com.epam.aidial.cfg.dto.route.RouteDto;
@@ -2858,54 +2860,451 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(importConfigPreview).usingRecursiveAssertion().isEqualTo(expectedPreview);
     }
 
-    @Test
-    void testExport_CoreFormatDoesNotLeakSecrets() throws IOException {
+    /**
+     * With "Include secrets" off nothing secret reaches the export, on either the upstream or the
+     * interface level; with it on nothing is stripped. Without the "on" case, stripping every
+     * interface unconditionally would pass just as well.
+     */
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void testExport_CoreFormatUpstreamSecrets(boolean addSecrets) throws IOException {
         ModelDto modelDto = createModelDto("1");
         UpstreamDto upstream = new UpstreamDto();
+        upstream.setId("model-upstream-1");
         upstream.setEndpoint("https://api.example.com");
         upstream.setKey("secret-api-key-12345");
         upstream.setSecretExtraData("{\"apiSecret\":\"super-secret-value\"}");
         upstream.setExtraData("{\"timeout\":30}");
+        upstream.setInterfaces(Map.of("openaiChatCompletions",
+                createUpstreamInterfaceDto("https://api.example.com/v1/chat/completions",
+                        "interface-secret-key", "{\"interfaceSecret\":\"nested-super-secret\"}",
+                        "{\"nested\":true}")));
         modelDto.setUpstreams(List.of(upstream));
         modelFacade.createModel(modelDto);
 
         RouteDto routeDto = createRouteDto("1");
         UpstreamDto routeUpstream = new UpstreamDto();
+        routeUpstream.setId("route-upstream-1");
         routeUpstream.setEndpoint("https://route.example.com");
         routeUpstream.setKey("route-secret-key");
         routeUpstream.setSecretExtraData("{\"token\":\"route-secret-token\"}");
         routeUpstream.setExtraData("{\"retries\":3}");
+        routeUpstream.setInterfaces(Map.of("openaiChatCompletions",
+                createUpstreamInterfaceDto("https://route.example.com/v1/chat/completions",
+                        "route-interface-secret-key", "{\"interfaceToken\":\"nested-route-secret\"}",
+                        "{\"nestedRetries\":5}")));
         routeDto.setUpstreams(List.of(routeUpstream));
         routeFacade.createRoute(routeDto);
 
         FullExportRequest request = new FullExportRequest();
         request.setExportFormat(ExportFormat.CORE);
+        request.setAddSecrets(addSecrets);
         request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL, ExportConfigComponentType.ROUTE));
 
-        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+        String originalVersion = versionProperties.getTarget();
+        // Upstream.interfaces only exists from 0.48.0 - an older target strips the whole subtree
+        versionProperties.setTarget("0.48.0");
 
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        streamingResponseBody.writeTo(outputStream);
-        String exportedJson = outputStream.toString();
+        String exportedJson;
+        try {
+            StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
+            exportedJson = outputStream.toString();
+        } finally {
+            versionProperties.setTarget(originalVersion);
+        }
 
         Config result = jsonMapper.readValue(exportedJson, Config.class);
-        Assertions.assertThat(result).isNotNull().satisfies(config -> {
-            Assertions.assertThat(config.getModels()).containsKey("model1");
-            Assertions.assertThat(config.getModels().get("model1").getUpstreams()).hasSize(1);
-            var modelUpstream = config.getModels().get("model1").getUpstreams().get(0);
+        Assertions.assertThat(result).isNotNull();
+        Assertions.assertThat(result.getModels()).containsKey("model1");
+        Assertions.assertThat(result.getModels().get("model1").getUpstreams()).hasSize(1);
+        Assertions.assertThat(result.getRoutes()).containsKey("route1");
+        Assertions.assertThat(result.getRoutes().get("route1").getUpstreams()).hasSize(1);
+
+        var modelUpstream = result.getModels().get("model1").getUpstreams().get(0);
+        var routeUpstreamResult = result.getRoutes().get("route1").getUpstreams().get(0);
+        Assertions.assertThat(modelUpstream.getInterfaces()).containsOnlyKeys("openaiChatCompletions");
+        Assertions.assertThat(routeUpstreamResult.getInterfaces()).containsOnlyKeys("openaiChatCompletions");
+        var modelInterface = modelUpstream.getInterfaces().get("openaiChatCompletions");
+        var routeInterface = routeUpstreamResult.getInterfaces().get("openaiChatCompletions");
+
+        if (addSecrets) {
+            Assertions.assertThat(modelUpstream.getKey()).isEqualTo("secret-api-key-12345");
+            Assertions.assertThat(modelUpstream.getSecretExtraData())
+                    .isEqualTo("{\"apiSecret\":\"super-secret-value\"}");
+            Assertions.assertThat(modelInterface.getKey()).isEqualTo("interface-secret-key");
+            Assertions.assertThat(modelInterface.getSecretExtraData())
+                    .isEqualTo("{\"interfaceSecret\":\"nested-super-secret\"}");
+            Assertions.assertThat(routeUpstreamResult.getKey()).isEqualTo("route-secret-key");
+            Assertions.assertThat(routeUpstreamResult.getSecretExtraData())
+                    .isEqualTo("{\"token\":\"route-secret-token\"}");
+            Assertions.assertThat(routeInterface.getKey()).isEqualTo("route-interface-secret-key");
+            Assertions.assertThat(routeInterface.getSecretExtraData())
+                    .isEqualTo("{\"interfaceToken\":\"nested-route-secret\"}");
+        } else {
+            // Guards against a leak that deserialization into Config could hide
+            Assertions.assertThat(exportedJson).doesNotContain("secret-api-key-12345", "super-secret-value",
+                    "interface-secret-key", "nested-super-secret", "route-secret-key", "route-secret-token",
+                    "route-interface-secret-key", "nested-route-secret");
+
             Assertions.assertThat(modelUpstream.getKey()).isNull();
             Assertions.assertThat(modelUpstream.getSecretExtraData()).isNull();
-            Assertions.assertThat(modelUpstream.getEndpoint()).isEqualTo("https://api.example.com");
-            Assertions.assertThat(modelUpstream.getExtraData()).isEqualTo("{\"timeout\":30}");
-
-            Assertions.assertThat(config.getRoutes()).containsKey("route1");
-            Assertions.assertThat(config.getRoutes().get("route1").getUpstreams()).hasSize(1);
-            var routeUpstreamResult = config.getRoutes().get("route1").getUpstreams().get(0);
+            Assertions.assertThat(modelInterface.getKey()).isNull();
+            Assertions.assertThat(modelInterface.getSecretExtraData()).isNull();
             Assertions.assertThat(routeUpstreamResult.getKey()).isNull();
             Assertions.assertThat(routeUpstreamResult.getSecretExtraData()).isNull();
-            Assertions.assertThat(routeUpstreamResult.getEndpoint()).isEqualTo("https://route.example.com");
-            Assertions.assertThat(routeUpstreamResult.getExtraData()).isEqualTo("{\"retries\":3}");
-        });
+            Assertions.assertThat(routeInterface.getKey()).isNull();
+            Assertions.assertThat(routeInterface.getSecretExtraData()).isNull();
+        }
+
+        // Non-secret fields survive either way
+        Assertions.assertThat(modelUpstream.getEndpoint()).isEqualTo("https://api.example.com");
+        Assertions.assertThat(modelUpstream.getExtraData()).isEqualTo("{\"timeout\":30}");
+        Assertions.assertThat(modelInterface.getEndpoint()).isEqualTo("https://api.example.com/v1/chat/completions");
+        Assertions.assertThat(modelInterface.getExtraData()).isEqualTo("{\"nested\":true}");
+        Assertions.assertThat(routeUpstreamResult.getEndpoint()).isEqualTo("https://route.example.com");
+        Assertions.assertThat(routeUpstreamResult.getExtraData()).isEqualTo("{\"retries\":3}");
+        Assertions.assertThat(routeInterface.getEndpoint()).isEqualTo("https://route.example.com/v1/chat/completions");
+        Assertions.assertThat(routeInterface.getExtraData()).isEqualTo("{\"nestedRetries\":5}");
+    }
+
+    /**
+     * The upstream itself holds no secret, only its interface does. Such an upstream used to look
+     * secret-free to every stripping site, so it needs a test of its own rather than riding on the
+     * one above.
+     */
+    @Test
+    void testExport_CoreFormatDoesNotLeakInterfaceOnlySecrets() throws IOException {
+        ModelDto modelDto = createModelDto("1");
+        UpstreamDto upstream = new UpstreamDto();
+        upstream.setId("model-upstream-1");
+        upstream.setEndpoint("https://api.example.com");
+        upstream.setExtraData("{\"timeout\":30}");
+        upstream.setInterfaces(Map.of("anthropicMessages",
+                createUpstreamInterfaceDto("https://api.example.com/v1/messages",
+                        "interface-only-secret-key", "{\"interfaceSecret\":\"interface-only-secret-value\"}",
+                        "{\"nested\":true}")));
+        modelDto.setUpstreams(List.of(upstream));
+        modelFacade.createModel(modelDto);
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL));
+
+        String originalVersion = versionProperties.getTarget();
+        versionProperties.setTarget("0.48.0");
+
+        String exportedJson;
+        try {
+            StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
+            exportedJson = outputStream.toString();
+        } finally {
+            versionProperties.setTarget(originalVersion);
+        }
+
+        Assertions.assertThat(exportedJson)
+                .doesNotContain("interface-only-secret-key", "interface-only-secret-value");
+
+        Config result = jsonMapper.readValue(exportedJson, Config.class);
+        Assertions.assertThat(result.getModels()).containsKey("model1");
+        var exportedUpstream = result.getModels().get("model1").getUpstreams().get(0);
+        Assertions.assertThat(exportedUpstream.getEndpoint()).isEqualTo("https://api.example.com");
+        var exportedInterface = exportedUpstream.getInterfaces().get("anthropicMessages");
+        Assertions.assertThat(exportedInterface).isNotNull();
+        Assertions.assertThat(exportedInterface.getKey()).isNull();
+        Assertions.assertThat(exportedInterface.getSecretExtraData()).isNull();
+        Assertions.assertThat(exportedInterface.getEndpoint()).isEqualTo("https://api.example.com/v1/messages");
+        Assertions.assertThat(exportedInterface.getExtraData()).isEqualTo("{\"nested\":true}");
+    }
+
+    /**
+     * A Core-format config carries an id on each upstream: an upstream declaring interfaces is
+     * addressed by that id, so an import that strips it either loses it silently or fails validation
+     * ("An upstream declaring interfaces requires an id").
+     */
+    @Test
+    void testImport_CoreFormatKeepsUpstreamIdAndInterfaces() throws IOException {
+        String config = FileUtils.readFileToString(
+                new File("src/test/resources/import/import_modelAndRouteWithUpstreamIdAndInterfaces.json"),
+                StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes(StandardCharsets.UTF_8)
+        );
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
+        ModelDto model = modelFacade.getModel("testModel1");
+        Assertions.assertThat(model.getUpstreams()).hasSize(1);
+        var modelUpstream = model.getUpstreams().get(0);
+        Assertions.assertThat(modelUpstream.getId()).isEqualTo("model-upstream-1");
+        Assertions.assertThat(modelUpstream.getEndpoint()).isEqualTo("https://upstream.test.com/embeddings");
+        Assertions.assertThat(modelUpstream.getBaseUrl()).isEqualTo("https://upstream.test.com");
+        Assertions.assertThat(modelUpstream.getInterfaces()).containsOnlyKeys("openaiChatCompletions");
+        Assertions.assertThat(modelUpstream.getInterfaces().get("openaiChatCompletions").getEndpoint())
+                .isEqualTo("https://upstream.test.com/v1/chat/completions");
+
+        RouteDto route = routeFacade.getRoute("route1");
+        Assertions.assertThat(route.getUpstreams()).hasSize(1);
+        var routeUpstream = route.getUpstreams().get(0);
+        Assertions.assertThat(routeUpstream.getId()).isEqualTo("route-upstream-1");
+        Assertions.assertThat(routeUpstream.getEndpoint()).isEqualTo("https://route-upstream.test.com/api");
+        Assertions.assertThat(routeUpstream.getBaseUrl()).isEqualTo("https://route-upstream.test.com");
+        Assertions.assertThat(routeUpstream.getInterfaces()).containsOnlyKeys("openaiChatCompletions");
+        Assertions.assertThat(routeUpstream.getInterfaces().get("openaiChatCompletions").getEndpoint())
+                .isEqualTo("https://route-upstream.test.com/v1/chat/completions");
+    }
+
+    /**
+     * Interface-level features (Core 0.48.0) must survive a full CORE export/import round trip, including
+     * the two cases the deployment level cannot express: an interface with no {@code features} at all
+     * (inherit everything) and an interface whose {@code reasoning_efforts} is an explicit empty array
+     * (support none, clearing the inherited deployment-level list).
+     */
+    @Test
+    void testExportImport_CoreFormatKeepsInterfaceFeaturesIncludingEmptyReasoningEfforts() throws IOException {
+        ModelDto modelDto = createModelDto("1");
+        FeaturesDto modelFeatures = new FeaturesDto();
+        modelFeatures.setReasoningEfforts(List.of("low", "high"));
+        modelDto.setFeatures(modelFeatures);
+
+        DeploymentInterfaceDto anthropicInterface = new DeploymentInterfaceDto();
+        anthropicInterface.setBaseUrl("https://model.adapter.test.com");
+        FeaturesDto anthropicFeatures = new FeaturesDto();
+        anthropicFeatures.setToolsSupported(true);
+        anthropicFeatures.setReasoningEfforts(List.of("low", "medium", "high", "xhigh", "max"));
+        anthropicInterface.setFeatures(anthropicFeatures);
+
+        DeploymentInterfaceDto responsesInterface = new DeploymentInterfaceDto();
+        responsesInterface.setBaseUrl("https://model.adapter.test.com");
+        FeaturesDto responsesFeatures = new FeaturesDto();
+        responsesFeatures.setReasoningEfforts(List.of());
+        responsesInterface.setFeatures(responsesFeatures);
+
+        DeploymentInterfaceDto chatInterface = new DeploymentInterfaceDto();
+        chatInterface.setBaseUrl("https://model.adapter.test.com");
+
+        modelDto.setInterfaces(Map.of(
+                "openaiChatCompletions", chatInterface,
+                "openaiResponses", responsesInterface,
+                "anthropicMessages", anthropicInterface));
+        modelFacade.createModel(modelDto);
+
+        String exportedJson = exportModelsInCoreFormat("0.48.0");
+
+        Config exported = jsonMapper.readValue(exportedJson, Config.class);
+        var exportedInterfaces = exported.getModels().get("model1").getInterfaces();
+        Assertions.assertThat(exportedInterfaces)
+                .containsOnlyKeys("openaiChatCompletions", "openaiResponses", "anthropicMessages");
+        // no features declared -> nothing exported, so Core keeps applying the model-level features
+        Assertions.assertThat(exportedInterfaces.get("openaiChatCompletions").getFeatures()).isNull();
+        Assertions.assertThat(exportedInterfaces.get("anthropicMessages").getFeatures().getReasoningEfforts())
+                .containsExactly("low", "medium", "high", "xhigh", "max");
+        Assertions.assertThat(exportedInterfaces.get("anthropicMessages").getFeatures().getToolsSupported()).isTrue();
+        // the empty array is the payload of this test: it must be serialized, not dropped
+        Assertions.assertThat(exportedInterfaces.get("openaiResponses").getFeatures().getReasoningEfforts()).isEmpty();
+        Assertions.assertThat(exportedJson.replaceAll("\\s", "")).contains("\"reasoning_efforts\":[]");
+        // deployment-level export is untouched by the interface-level empty-array support
+        Assertions.assertThat(exported.getModels().get("model1").getFeatures().getReasoningEfforts())
+                .containsExactly("low", "high");
+
+        modelFacade.deleteModel("model1");
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                exportedJson.getBytes(StandardCharsets.UTF_8)
+        );
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
+        ModelDto reimported = modelFacade.getModel("model1");
+        Assertions.assertThat(reimported.getInterfaces())
+                .containsOnlyKeys("openaiChatCompletions", "openaiResponses", "anthropicMessages");
+        // the RETURN_DEFAULT trap: an absent features block must not come back as a fully defaulted override
+        Assertions.assertThat(reimported.getInterfaces().get("openaiChatCompletions").getFeatures()).isNull();
+        Assertions.assertThat(reimported.getInterfaces().get("anthropicMessages").getFeatures())
+                .isEqualTo(anthropicFeatures);
+        Assertions.assertThat(reimported.getInterfaces().get("openaiResponses").getFeatures())
+                .isEqualTo(responsesFeatures);
+        Assertions.assertThat(reimported.getFeatures().getReasoningEfforts()).containsExactly("low", "high");
+    }
+
+    /**
+     * Older Core versions know no interface-level features, so the field is filtered out while the
+     * interface itself - which still carries usable routing - survives.
+     */
+    @Test
+    void testExport_CoreFormatStripsInterfaceFeaturesForOlderTargetVersion() throws IOException {
+        ModelDto modelDto = createModelDto("1");
+        DeploymentInterfaceDto anthropicInterface = new DeploymentInterfaceDto();
+        anthropicInterface.setBaseUrl("https://model.adapter.test.com");
+        FeaturesDto anthropicFeatures = new FeaturesDto();
+        anthropicFeatures.setReasoningEfforts(List.of("low", "medium", "high"));
+        anthropicInterface.setFeatures(anthropicFeatures);
+        modelDto.setInterfaces(Map.of("anthropicMessages", anthropicInterface));
+        modelFacade.createModel(modelDto);
+
+        Config exported = jsonMapper.readValue(exportModelsInCoreFormat("0.47.0"), Config.class);
+
+        var exportedInterface = exported.getModels().get("model1").getInterfaces().get("anthropicMessages");
+        Assertions.assertThat(exportedInterface).isNotNull();
+        Assertions.assertThat(exportedInterface.getBaseUrl()).isEqualTo("https://model.adapter.test.com");
+        Assertions.assertThat(exportedInterface.getFeatures()).isNull();
+    }
+
+    private String exportModelsInCoreFormat(String targetVersion) throws IOException {
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL, ExportConfigComponentType.ROLE));
+
+        String originalVersion = versionProperties.getTarget();
+        versionProperties.setTarget(targetVersion);
+        try {
+            StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
+            return outputStream.toString();
+        } finally {
+            versionProperties.setTarget(originalVersion);
+        }
+    }
+
+    private UpstreamInterfaceDto createUpstreamInterfaceDto(String endpoint, String key,
+                                                            String secretExtraData, String extraData) {
+        UpstreamInterfaceDto upstreamInterface = new UpstreamInterfaceDto();
+        upstreamInterface.setEndpoint(endpoint);
+        upstreamInterface.setKey(key);
+        upstreamInterface.setSecretExtraData(secretExtraData);
+        upstreamInterface.setExtraData(extraData);
+        return upstreamInterface;
+    }
+
+    /**
+     * ADMIN format serializes the domain objects with the plain object mapper, which carries none of the
+     * mixins that hide secrets on the Core side, so it is the format most likely to leak silently.
+     */
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void testExport_AdminFormatInterfaceSecrets(boolean addSecrets) throws IOException {
+        ModelDto modelDto = createModelDto("1");
+        UpstreamDto upstream = new UpstreamDto();
+        upstream.setId("model-upstream-1");
+        upstream.setEndpoint("https://api.example.com");
+        upstream.setKey("secret-api-key-12345");
+        upstream.setSecretExtraData("{\"apiSecret\":\"super-secret-value\"}");
+        upstream.setInterfaces(Map.of("openaiChatCompletions",
+                createUpstreamInterfaceDto("https://api.example.com/v1/chat/completions",
+                        "interface-secret-key", "{\"interfaceSecret\":\"nested-super-secret\"}",
+                        "{\"nested\":true}")));
+        modelDto.setUpstreams(List.of(upstream));
+        modelFacade.createModel(modelDto);
+
+        RouteDto routeDto = createRouteDto("1");
+        UpstreamDto routeUpstream = new UpstreamDto();
+        routeUpstream.setId("route-upstream-1");
+        routeUpstream.setEndpoint("https://route.example.com");
+        routeUpstream.setInterfaces(Map.of("openaiChatCompletions",
+                createUpstreamInterfaceDto("https://route.example.com/v1/chat/completions",
+                        "route-interface-secret-key", "{\"interfaceToken\":\"nested-route-secret\"}",
+                        "{\"nestedRetries\":5}")));
+        routeDto.setUpstreams(List.of(routeUpstream));
+        routeFacade.createRoute(routeDto);
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setAddSecrets(addSecrets);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL, ExportConfigComponentType.ROUTE));
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+        String exportedJson = extractConfigJsonFromZip(streamingResponseBody);
+
+        // then
+        ExportConfig result = jsonMapper.readValue(exportedJson, ExportConfig.class);
+        var modelInterface = result.getModels().get("model1").getUpstreams().get(0)
+                .getInterfaces().get("openaiChatCompletions");
+        var routeInterface = result.getRoutes().get("route1").getUpstreams().get(0)
+                .getInterfaces().get("openaiChatCompletions");
+
+        if (addSecrets) {
+            Assertions.assertThat(modelInterface.getKey()).isEqualTo("interface-secret-key");
+            Assertions.assertThat(modelInterface.getSecretExtraData())
+                    .isEqualTo("{\"interfaceSecret\":\"nested-super-secret\"}");
+            Assertions.assertThat(routeInterface.getKey()).isEqualTo("route-interface-secret-key");
+            Assertions.assertThat(routeInterface.getSecretExtraData())
+                    .isEqualTo("{\"interfaceToken\":\"nested-route-secret\"}");
+        } else {
+            Assertions.assertThat(exportedJson).doesNotContain("secret-api-key-12345", "super-secret-value",
+                    "interface-secret-key", "nested-super-secret", "route-interface-secret-key",
+                    "nested-route-secret");
+            Assertions.assertThat(modelInterface.getKey()).isNull();
+            Assertions.assertThat(modelInterface.getSecretExtraData()).isNull();
+            Assertions.assertThat(routeInterface.getKey()).isNull();
+            Assertions.assertThat(routeInterface.getSecretExtraData()).isNull();
+        }
+
+        // Non-secret fields survive either way
+        Assertions.assertThat(modelInterface.getEndpoint()).isEqualTo("https://api.example.com/v1/chat/completions");
+        Assertions.assertThat(modelInterface.getExtraData()).isEqualTo("{\"nested\":true}");
+        Assertions.assertThat(routeInterface.getEndpoint()).isEqualTo("https://route.example.com/v1/chat/completions");
+        Assertions.assertThat(routeInterface.getExtraData()).isEqualTo("{\"nestedRetries\":5}");
+    }
+
+    /**
+     * An application's routes carry upstreams too, on a stripping path of their own.
+     */
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void testExport_AdminFormatApplicationRouteInterfaceSecrets(boolean addSecrets) throws IOException {
+        DependentRouteDto route = getDependentRouteDto("appRoute1");
+        UpstreamDto upstream = new UpstreamDto();
+        upstream.setId("app-route-upstream-1");
+        upstream.setEndpoint("https://app.example.com");
+        upstream.setInterfaces(Map.of("openaiChatCompletions",
+                createUpstreamInterfaceDto("https://app.example.com/v1/chat/completions",
+                        "app-interface-secret-key", "{\"interfaceSecret\":\"nested-app-secret\"}",
+                        "{\"nested\":true}")));
+        route.setUpstreams(List.of(upstream));
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setEndpoint("http://sample.com/app");
+        applicationDto.setRoutes(List.of(route));
+        applicationFacade.createApplication(applicationDto);
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setAddSecrets(addSecrets);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.APPLICATION));
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+        String exportedJson = extractConfigJsonFromZip(streamingResponseBody);
+
+        // then
+        ExportConfig result = jsonMapper.readValue(exportedJson, ExportConfig.class);
+        var exportedInterface = result.getApplications().get(applicationDto.getName()).getRoutes().get(0)
+                .getUpstreams().get(0).getInterfaces().get("openaiChatCompletions");
+
+        if (addSecrets) {
+            Assertions.assertThat(exportedInterface.getKey()).isEqualTo("app-interface-secret-key");
+            Assertions.assertThat(exportedInterface.getSecretExtraData())
+                    .isEqualTo("{\"interfaceSecret\":\"nested-app-secret\"}");
+        } else {
+            Assertions.assertThat(exportedJson)
+                    .doesNotContain("app-interface-secret-key", "nested-app-secret");
+            Assertions.assertThat(exportedInterface.getKey()).isNull();
+            Assertions.assertThat(exportedInterface.getSecretExtraData()).isNull();
+        }
+        Assertions.assertThat(exportedInterface.getEndpoint())
+                .isEqualTo("https://app.example.com/v1/chat/completions");
+        Assertions.assertThat(exportedInterface.getExtraData()).isEqualTo("{\"nested\":true}");
     }
 
     @Test
@@ -2961,6 +3360,11 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     private ExportConfig extractConfigFromZip(StreamingResponseBody streamingResponseBody) throws IOException {
+        String jsonContent = extractConfigJsonFromZip(streamingResponseBody);
+        return jsonContent == null ? null : jsonMapper.readValue(jsonContent, ExportConfig.class);
+    }
+
+    private String extractConfigJsonFromZip(StreamingResponseBody streamingResponseBody) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         streamingResponseBody.writeTo(baos);
         try (InputStream zipInputStream = new ByteArrayInputStream(baos.toByteArray())) {
@@ -2974,8 +3378,7 @@ public abstract class ConfigTransferFunctionalTest {
                     while ((bytesRead = zis.read(buffer)) != -1) {
                         jsonBaos.write(buffer, 0, bytesRead);
                     }
-                    String jsonContent = jsonBaos.toString(StandardCharsets.UTF_8);
-                    return jsonMapper.readValue(jsonContent, ExportConfig.class);
+                    return jsonBaos.toString(StandardCharsets.UTF_8);
                 } else {
                     return null;
                 }

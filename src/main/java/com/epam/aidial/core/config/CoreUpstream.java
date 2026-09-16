@@ -11,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -45,12 +47,30 @@ public class CoreUpstream {
     @JsonAlias({"secretExtraData", "dial:secretExtraData"})
     private String secretExtraData;   // 0.45.0
 
+    /**
+     * Root url that every {@link #interfaces} entry declaring no endpoint of its own resolves against
+     * (Core appends its own fixed API path for the interface type). Unlike a deployment's
+     * {@code base_url}, the ingress path plays no part — an upstream is addressed where its own API
+     * spec says it lives.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonAlias({"baseUrl", "base_url", "dial:baseUrl"})
+    private String baseUrl; // 0.48.0
+
+    /**
+     * Provider urls keyed by interface-type value. Peer of endpoint/responsesEndpoint.
+     */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonAlias({"interfaces", "dial:interfaces"})
+    private Map<String, CoreUpstreamInterface> interfaces = Map.of(); // 0.48.0
+
     public String toString() {
         return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint
                 + ", key=" + SecretUtils.mask(this.getKey())
                 + ", extraData=" + this.getExtraData()
                 + ", secretExtraData=" + SecretUtils.mask(this.getSecretExtraData())
                 + ", weight=" + this.getWeight()
-                + ", tier=" + this.getTier() + ")";
+                + ", tier=" + this.getTier()
+                + ", baseUrl=" + this.getBaseUrl() + ")";
     }
 }

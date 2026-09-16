@@ -34,6 +34,9 @@ public class InterceptorEntity extends TimeTrackableEntity<String> {
     private String description;
     private String displayName;
     private String overrideName;
+    @Column(columnDefinition = "CLOB")
+    private String defaultHeaders;
+    private String baseUrl;
     private Boolean forwardAuthToken;
     private String author;
     private List<String> dependencies;

@@ -101,4 +101,18 @@ public abstract class Deployment extends RoleBasedEntity {
     @JsonAlias({"overrideName", "override_name"})
     private String overrideName; // 0.47.0
 
+    /**
+     * Default HTTP headers to include in requests to the deployment.
+     */
+    @JsonAlias({"defaultHeaders", "default_headers"})
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> defaultHeaders = Map.of(); // 0.48.0
+
+    /**
+     * Base URL for the deployment endpoint.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonAlias({"baseUrl", "base_url"})
+    private String baseUrl; // 0.48.0
+
 }

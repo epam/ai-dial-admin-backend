@@ -49,6 +49,9 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     private String displayName;
     private String displayVersion;
     private String overrideName;
+    @Column(columnDefinition = "CLOB")
+    private String defaultHeaders;
+    private String baseUrl;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;

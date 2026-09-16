@@ -17,7 +17,13 @@
       }
     },
     "interfaces": {
-      "openaiChatCompletions": {"baseUrl": "https://app.adapter.example.com"}
+      "openaiChatCompletions": {
+        "baseUrl": "https://app.adapter.example.com",
+        "features": {
+          "contentPartsSupported": true,
+          "reasoningEfforts": []
+        }
+      }
     },
     "iconUrl": "https://example.com/icon.png",
     "viewerUrl": "https://viewer.example.com",
@@ -28,6 +34,11 @@
     "displayName": "Sample Application",
     "displayVersion": "1.0.0",
     "overrideName": "Custom Application Override",
+    "defaultHeaders": {
+      "X-Custom-Header": "custom-value",
+      "X-API-Version": "v1"
+    },
+    "baseUrl": "https://base.example.com",
     "inputAttachmentTypes": [
       "pdf",
       "docx"
@@ -71,7 +82,8 @@
       "maxTokensSupported": true,
       "maxCompletionTokensSupported": false,
       "customTemperatureSupported": true,
-      "reasoningEfforts": ["effort1", "effort2"]
+      "reasoningEfforts": ["effort1", "effort2"],
+      "skillsSupported": true
     },
     "applicationProperties": {
       "debug": true,

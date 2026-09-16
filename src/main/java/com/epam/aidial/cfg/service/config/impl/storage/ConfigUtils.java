@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.service.config.impl.storage;
 
+import com.epam.aidial.cfg.utils.UpstreamSecretUtils;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreUpstream;
 import org.apache.commons.collections4.CollectionUtils;
@@ -63,7 +64,7 @@ public class ConfigUtils {
     private static List<CoreUpstream> removeUpstreamsWithSecrets(List<CoreUpstream> coreUpstreamList) {
         if (CollectionUtils.isNotEmpty(coreUpstreamList)) {
             return coreUpstreamList.stream()
-                    .filter(upstream -> (upstream.getKey() == null && upstream.getSecretExtraData() == null))
+                    .filter(upstream -> !UpstreamSecretUtils.hasSecrets(upstream))
                     .collect(Collectors.toList());
         }
         return coreUpstreamList;

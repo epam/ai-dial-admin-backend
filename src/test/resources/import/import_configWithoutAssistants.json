@@ -88,7 +88,13 @@
       ],
       "endpoint": "endpoint",
       "interfaces": {
-        "openaiChatCompletions": {"base_url": "https://app.adapter.test.com"}
+        "openaiChatCompletions": {
+          "base_url": "https://app.adapter.test.com",
+          "defaultHeaders": {
+            "x-dial-cache-policy": "cache-priority",
+            "x-dial-custom-header": "foo-bar"
+          }
+        }
       },
       "responsesEndpoint": "http://application2/responses",
       "responsesDefaults": {

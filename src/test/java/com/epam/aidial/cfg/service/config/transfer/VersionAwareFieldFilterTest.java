@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.Resource;
@@ -309,6 +310,199 @@ class VersionAwareFieldFilterTest {
     }
 
     @Test
+    void filterForTargetVersion_interfaceFeaturesKeptWhenTargetVersionSupportsThem() throws IOException {
+        // given
+        mockRealSchema("0.48.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "features": {"reasoning_efforts": ["low", "high"], "tools_supported": true},
+                      "interfaces": {
+                        "openaiChatCompletions": {"base_url": "http://model.adapter"},
+                        "anthropicMessages": {
+                          "base_url": "http://model.adapter",
+                          "features": {
+                            "reasoning_efforts": ["low", "medium", "high", "xhigh", "max"],
+                            "rate_endpoint": "http://model.adapter/rate",
+                            "tools_supported": false
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode interfaces = result.get("models").get("m1").get("interfaces");
+        assertThat(interfaces.get("openaiChatCompletions").has("features")).isFalse();
+
+        JsonNode features = interfaces.get("anthropicMessages").get("features");
+        assertThat(features.get("rate_endpoint").asText()).isEqualTo("http://model.adapter/rate");
+        assertThat(features.get("tools_supported").asBoolean()).isFalse();
+        assertThat(features.get("reasoning_efforts"))
+                .isEqualTo(MAPPER.readTree("""
+                        ["low", "medium", "high", "xhigh", "max"]"""));
+    }
+
+    @Test
+    void filterForTargetVersion_interfaceFeaturesEmptyReasoningEffortsSurvivesExport() throws IOException {
+        // given an interface that supports no reasoning efforts at all: the empty array is what tells
+        // Core to clear the list inherited from the deployment, so it must not be dropped
+        mockRealSchema("0.48.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "features": {"reasoning_efforts": ["low", "high"]},
+                      "interfaces": {
+                        "openaiChatCompletions": {
+                          "base_url": "http://model.adapter",
+                          "features": {"reasoning_efforts": []}
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode features = result.get("models").get("m1").get("interfaces")
+                .get("openaiChatCompletions").get("features");
+        assertThat(features.has("reasoning_efforts")).isTrue();
+        assertThat(features.get("reasoning_efforts")).isEmpty();
+        // the deployment-level list is untouched
+        assertThat(result.get("models").get("m1").get("features").get("reasoning_efforts"))
+                .isEqualTo(MAPPER.readTree("""
+                        ["low", "high"]"""));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0.46.0", "0.47.0"})
+    void filterForTargetVersion_interfaceFeaturesStrippedButInterfaceKeptForOlderTargetVersions(String version)
+            throws IOException {
+        // given
+        mockRealSchema(version);
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "interfaces": {
+                        "openaiChatCompletions": {
+                          "base_url": "http://model.adapter",
+                          "features": {"rate_endpoint": "http://model.adapter/rate"}
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then the interface itself survives - only the unsupported features field is stripped
+        JsonNode deploymentInterface = result.get("models").get("m1").get("interfaces").get("openaiChatCompletions");
+        assertThat(deploymentInterface.get("base_url").asText()).isEqualTo("http://model.adapter");
+        assertThat(deploymentInterface.has("features")).isFalse();
+    }
+
+    @Test
+    void filterForTargetVersion_deploymentBaseUrlKeptAtVersionThatSupportsIt() throws IOException {
+        // given the deployment-level base URL introduced in 0.48.0: it is the fallback that serves every
+        // interface declaring none of its own, so it must not be filtered out of the export
+        mockRealSchema("0.48.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "baseUrl": "http://model.adapter"
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        assertThat(result.get("models").get("m1").get("baseUrl").asText()).isEqualTo("http://model.adapter");
+    }
+
+    @Test
+    void filterForTargetVersion_featuresOnlyInterfaceWithoutBaseUrlIsKept() throws IOException {
+        // given an interface that only overrides features and relies on the deployment-level base URL:
+        // reading it at all exercises that base_url is optional on CoreDeploymentInterface
+        mockRealSchema("0.48.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "baseUrl": "http://model.adapter",
+                      "features": {"reasoning_efforts": ["low", "high"]},
+                      "interfaces": {
+                        "anthropicMessages": {
+                          "features": {"reasoning_efforts": ["low", "medium", "high", "xhigh", "max"]}
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then the entry survives with its features, carrying no base_url of its own
+        JsonNode deploymentInterface = result.get("models").get("m1").get("interfaces").get("anthropicMessages");
+        assertThat(deploymentInterface.has("base_url")).isFalse();
+        assertThat(deploymentInterface.get("features").get("reasoning_efforts"))
+                .isEqualTo(MAPPER.readTree("""
+                        ["low", "medium", "high", "xhigh", "max"]"""));
+        assertThat(result.get("models").get("m1").get("baseUrl").asText()).isEqualTo("http://model.adapter");
+    }
+
+    @Test
+    void filterForTargetVersion_featuresOnlyInterfaceHasNoSchemaViolations() throws IOException {
+        // given the same features-only entry: the 0.48.0 schema must not require base_url on an interface
+        mockRealSchema("0.48.0");
+        VersionAwareSchemaChecker schemaChecker = new VersionAwareSchemaChecker(schemaLoader);
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "baseUrl": "http://model.adapter",
+                      "interfaces": {
+                        "anthropicMessages": {
+                          "features": {"rate_endpoint": "http://model.adapter/rate"}
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        assertThat(schemaChecker.check(result, "0.48.0")).isEmpty();
+    }
+
+    @Test
     void filterForTargetVersion_unsupportedInterfaceKeyDroppedForApplication() throws IOException {
         // given
         mockRealSchema("0.46.0");
@@ -454,6 +648,133 @@ class VersionAwareFieldFilterTest {
         assertThat(application).isNotNull();
         assertThat(application.has("interfaces")).isFalse();
         assertThat(application.get("routes").has("route1")).isTrue();
+    }
+
+    @Test
+    void filterForTargetVersion_upstreamBaseUrlAndInterfacesKeptWhenTargetVersionSupportsThem() throws IOException {
+        // given
+        mockRealSchema("0.48.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "upstreams": [
+                        {
+                          "id": "upstream1",
+                          "base_url": "http://upstream.adapter",
+                          "interfaces": {
+                            "openaiChatCompletions": {"endpoint": "http://upstream.adapter/v1/chat/completions"}
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode upstream = result.get("models").get("m1").get("upstreams").get(0);
+        assertThat(upstream.get("baseUrl").asText()).isEqualTo("http://upstream.adapter");
+        assertThat(upstream.get("interfaces").get("openaiChatCompletions").get("endpoint").asText())
+                .isEqualTo("http://upstream.adapter/v1/chat/completions");
+    }
+
+    @Test
+    void filterForTargetVersion_upstreamKeptWhenBaseUrlAndInterfacesStrippedButEndpointPresent() throws IOException {
+        // given
+        mockRealSchema("0.47.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "upstreams": [
+                        {
+                          "id": "upstream1",
+                          "endpoint": "http://upstream.direct/chat/completions",
+                          "base_url": "http://upstream.adapter",
+                          "interfaces": {
+                            "openaiChatCompletions": {"endpoint": "http://upstream.adapter/v1/chat/completions"}
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode upstreams = result.get("models").get("m1").get("upstreams");
+        assertThat(upstreams).hasSize(1);
+        JsonNode upstream = upstreams.get(0);
+        assertThat(upstream.has("baseUrl")).isFalse();
+        assertThat(upstream.has("interfaces")).isFalse();
+        assertThat(upstream.get("endpoint").asText()).isEqualTo("http://upstream.direct/chat/completions");
+    }
+
+    @Test
+    void filterForTargetVersion_upstreamOnlyBaseUrlAndInterfacesDroppedWhenTargetVersionDoesNotSupportThem() throws IOException {
+        // given
+        mockRealSchema("0.47.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "upstreams": [
+                        {
+                          "id": "upstream1",
+                          "base_url": "http://upstream.adapter",
+                          "interfaces": {
+                            "openaiChatCompletions": {"endpoint": "http://upstream.adapter/v1/chat/completions"}
+                          }
+                        },
+                        {
+                          "endpoint": "http://upstream2.direct/chat/completions"
+                        }
+                      ]
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode upstreams = result.get("models").get("m1").get("upstreams");
+        assertThat(upstreams).hasSize(1);
+        assertThat(upstreams.get(0).get("endpoint").asText()).isEqualTo("http://upstream2.direct/chat/completions");
+    }
+
+    @Test
+    void filterForTargetVersion_routeUpstreamOnlyBaseUrlDroppedWhenTargetVersionDoesNotSupportIt() throws IOException {
+        // given
+        mockRealSchema("0.47.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "routes": {
+                    "r1": {
+                      "upstreams": [
+                        {
+                          "base_url": "http://upstream.adapter"
+                        }
+                      ]
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode upstreams = result.get("routes").get("r1").get("upstreams");
+        assertThat(upstreams).isEmpty();
     }
 
     private void mockRealSchema(String version) throws IOException {

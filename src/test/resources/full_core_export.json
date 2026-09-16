@@ -107,7 +107,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responsesDefaults": {
@@ -118,10 +119,51 @@
           "base_url": "https://model.adapter.test.com"
         },
         "openaiResponses": {
-          "base_url": "https://model.adapter.test.com"
+          "base_url": "https://model.adapter.test.com",
+          "features": {
+            "system_prompt_supported": true,
+            "tools_supported": false,
+            "seed_supported": false,
+            "url_attachments_supported": false,
+            "folder_attachments_supported": false,
+            "allow_resume": true,
+            "accessible_by_per_request_key": true,
+            "content_parts_supported": false,
+            "temperature_supported": true,
+            "parallel_tool_calls_supported": true,
+            "assistant_attachments_in_request_supported": false,
+            "max_tokens_supported": true,
+            "custom_temperature_supported": true,
+            "reasoning_efforts": [],
+            "skills_supported": false
+          }
         },
         "anthropicMessages": {
-          "base_url": "https://model.adapter.test.com"
+          "base_url": "https://model.adapter.test.com",
+          "features": {
+            "rate_endpoint": "https://model.adapter.test.com/rate",
+            "system_prompt_supported": true,
+            "tools_supported": true,
+            "seed_supported": false,
+            "url_attachments_supported": false,
+            "folder_attachments_supported": false,
+            "allow_resume": true,
+            "accessible_by_per_request_key": true,
+            "content_parts_supported": false,
+            "temperature_supported": true,
+            "parallel_tool_calls_supported": true,
+            "assistant_attachments_in_request_supported": false,
+            "max_tokens_supported": true,
+            "custom_temperature_supported": true,
+            "reasoning_efforts": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "max"
+            ],
+            "skills_supported": false
+          }
         }
       },
       "interceptors": [
@@ -167,7 +209,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responsesDefaults": {},
@@ -205,7 +248,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responses_defaults": {},
@@ -246,7 +290,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responses_defaults": {
@@ -254,7 +299,24 @@
       },
       "interfaces": {
         "openaiChatCompletions": {
-          "base_url": "https://app.adapter.test.com"
+          "base_url": "https://app.adapter.test.com",
+          "features": {
+            "system_prompt_supported": true,
+            "tools_supported": true,
+            "seed_supported": false,
+            "url_attachments_supported": false,
+            "folder_attachments_supported": false,
+            "allow_resume": true,
+            "accessible_by_per_request_key": true,
+            "content_parts_supported": true,
+            "temperature_supported": true,
+            "parallel_tool_calls_supported": true,
+            "assistant_attachments_in_request_supported": false,
+            "max_tokens_supported": true,
+            "custom_temperature_supported": true,
+            "reasoning_efforts": [],
+            "skills_supported": false
+          }
         }
       },
       "interceptors": [],
@@ -378,7 +440,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responsesDefaults": {},
@@ -416,7 +479,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responsesDefaults": {},
@@ -449,7 +513,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responsesDefaults": {},
@@ -462,7 +527,10 @@
       "dependencies": []
     }
   },
-  "globalInterceptors": ["testInterceptor2", "testInterceptor1"],
+  "globalInterceptors": [
+    "testInterceptor2",
+    "testInterceptor1"
+  ],
   "applicationTypeSchemas": [
     {
       "properties": {},

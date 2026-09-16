@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
         componentModel = "spring",
         uses = {
                 DeploymentCoreMapper.class,
+                UpstreamInterfaceCoreMapper.class,
         }
 )
 public abstract class RouteCoreMapper {
@@ -79,7 +80,6 @@ public abstract class RouteCoreMapper {
         return routes;
     }
 
-    @Mapping(target = "id", ignore = true)
     public abstract Upstream mapUpstream(CoreUpstream upstream);
 
     public abstract List<Pattern> mapPaths(List<String> paths);

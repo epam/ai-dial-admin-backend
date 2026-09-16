@@ -59,6 +59,8 @@ public class ModelDto extends RoleBasedDto {
     private PricingDto pricing;
     private List<UpstreamDto> upstreams = List.of();
     private String overrideName;
+    private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private List<String> fieldsHashingOrder;
     private Integer embeddingDimensions;
     private ModelSourceDto source;

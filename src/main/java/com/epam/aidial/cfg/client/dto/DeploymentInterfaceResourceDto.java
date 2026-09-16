@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -15,4 +17,7 @@ import lombok.NoArgsConstructor;
 public class DeploymentInterfaceResourceDto {
 
     private String baseUrl;
+    private Map<String, String> defaultHeaders;
+    private InterfaceModeResourceDto mode;
+    private FeaturesDto features;
 }

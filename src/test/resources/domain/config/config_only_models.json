@@ -10,7 +10,27 @@
       "endpoint": "https://example.com/model/sampleDeployment/chat/completions",
       "interfaces": {
         "openaiChatCompletions": {"base_url": "https://model.adapter.example.com"},
-        "anthropicMessages": {"base_url": "https://model.adapter.example.com"}
+        "anthropicMessages": {
+          "base_url": "https://model.adapter.example.com",
+          "features": {
+            "rate_endpoint": "/anthropic/rate",
+            "system_prompt_supported": true,
+            "tools_supported": true,
+            "seed_supported": false,
+            "url_attachments_supported": false,
+            "folder_attachments_supported": false,
+            "allow_resume": true,
+            "accessible_by_per_request_key": true,
+            "content_parts_supported": false,
+            "temperature_supported": true,
+            "parallel_tool_calls_supported": true,
+            "assistant_attachments_in_request_supported": false,
+            "max_tokens_supported": true,
+            "custom_temperature_supported": true,
+            "reasoning_efforts": ["low", "medium", "high", "xhigh", "max"],
+            "skills_supported": false
+          }
+        }
       },
       "displayName": "Sample Model",
       "displayVersion": "1.0.0",
@@ -42,7 +62,8 @@
         "max_tokens_supported": true,
         "max_completion_tokens_supported": false,
         "custom_temperature_supported": true,
-        "reasoning_efforts": ["effort1", "effort2"]
+        "reasoning_efforts": ["effort1", "effort2"],
+        "skills_supported": false
       },
       "inputAttachmentTypes": [
         "pdf",

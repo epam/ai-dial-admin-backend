@@ -15,8 +15,20 @@
       "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
       "interfaces": {
         "openaiChatCompletions": {"base_url": "https://model.adapter.test.com"},
-        "openaiResponses": {"base_url": "https://model.adapter.test.com"},
-        "anthropicMessages": {"base_url": "https://model.adapter.test.com"}
+        "openaiResponses": {
+          "base_url": "https://model.adapter.test.com",
+          "features": {
+            "reasoning_efforts": []
+          }
+        },
+        "anthropicMessages": {
+          "base_url": "https://model.adapter.test.com",
+          "features": {
+            "rate_endpoint": "https://model.adapter.test.com/rate",
+            "tools_supported": true,
+            "reasoning_efforts": ["low", "medium", "high", "xhigh", "max"]
+          }
+        }
       },
       "endpoint": "https://endpoint1/embeddings",
       "responsesEndpoint": "https://endpoint1/responses",
@@ -65,7 +77,13 @@
         }
       },
       "interfaces": {
-        "openaiChatCompletions": {"base_url": "https://app.adapter.test.com"}
+        "openaiChatCompletions": {
+          "base_url": "https://app.adapter.test.com",
+          "features": {
+            "tools_supported": true,
+            "content_parts_supported": true
+          }
+        }
       },
       "name": "testApplication2",
       "displayName": "Test Application2",

@@ -5,13 +5,13 @@ import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
-import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
+import com.epam.aidial.cfg.utils.UpstreamSecretUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -115,14 +115,7 @@ public class ApplicationExporter {
 
     private Application removeSecretData(Application application, boolean addSecrets) {
         if (!addSecrets && CollectionUtils.isNotEmpty(application.getRoutes())) {
-            application.getRoutes().forEach(route -> {
-                if (CollectionUtils.isNotEmpty(route.getUpstreams())) {
-                    for (Upstream upstream : route.getUpstreams()) {
-                        upstream.setKey(null);
-                        upstream.setSecretExtraData(null);
-                    }
-                }
-            });
+            application.getRoutes().forEach(route -> UpstreamSecretUtils.removeSecrets(route.getUpstreams()));
         }
         if (!addSecrets && MapUtils.isNotEmpty(application.getExternalServices())) {
             application.getExternalServices().forEach((serviceKey, externalService) -> {

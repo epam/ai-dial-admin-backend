@@ -18,7 +18,8 @@ import java.util.List;
 @Mapper(
         componentModel = "spring",
         uses = {
-                DeploymentCoreMapper.class, FeatureCoreMapper.class, DeploymentInterfaceCoreMapper.class
+                DeploymentCoreMapper.class, FeatureCoreMapper.class, DeploymentInterfaceCoreMapper.class,
+                UpstreamInterfaceCoreMapper.class
         }
 )
 public abstract class ModelCoreMapper {
@@ -49,7 +50,6 @@ public abstract class ModelCoreMapper {
                                    @Context List<RoleLimit> roleLimits,
                                    @MappingTarget Model model);
 
-    @Mapping(target = "id", ignore = true)
     abstract Upstream map(CoreUpstream upstream);
 
     public abstract Model copy(Model model);

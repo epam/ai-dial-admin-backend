@@ -4,7 +4,7 @@ import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.dto.UpstreamDto;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {UpstreamInterfaceDtoMapper.class})
 public interface UpstreamDtoMapper {
 
     Upstream toDomain(UpstreamDto entity);

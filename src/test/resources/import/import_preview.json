@@ -349,7 +349,10 @@
         "displayName": "Test Interceptor1",
         "endpoint": "https://endpoint.test.com/interceptor",
         "interfaces": {
-          "openaiChatCompletions": {"baseUrl": "https://interceptor.adapter.test.com"}
+          "openaiChatCompletions": {
+            "baseUrl": "https://interceptor.adapter.test.com",
+            "defaultHeaders": {}
+          }
         },
         "forwardAuthToken": false,
         "author": "test-author",
@@ -376,7 +379,8 @@
         "applicationTypeSchemas":[],
         "source": {
           "$type": "endpoints"
-        }
+        },
+        "defaultHeaders": {}
       }
     }
   ],
@@ -644,8 +648,14 @@
           "max_tokens": 8000
         },
         "interfaces": {
-          "openaiChatCompletions": {"baseUrl": "https://model.adapter.test.com"},
-          "anthropicMessages": {"baseUrl": "https://model.adapter.test.com"}
+          "openaiChatCompletions": {
+            "baseUrl": "https://model.adapter.test.com",
+            "defaultHeaders": {}
+          },
+          "anthropicMessages": {
+            "baseUrl": "https://model.adapter.test.com",
+            "defaultHeaders": {}
+          }
         },
         "interceptors": [
           "testInterceptor1"
@@ -666,7 +676,8 @@
           "$type": "adapter",
           "adapterName": "<will be defined during import 1>",
           "completionEndpointPath": "embeddings"
-        }
+        },
+        "defaultHeaders": {}
       }
     },
     {
@@ -764,6 +775,7 @@
           "system"
         ],
         "interfaces": {},
+        "defaultHeaders": {},
         "source": {
           "$type": "adapter",
           "adapterName": "<will be defined during import 0>",
@@ -871,7 +883,8 @@
         "validityState": {
           "valid": true
         },
-        "interfaces": {}
+        "interfaces": {},
+        "defaultHeaders": {}
       }
     },
     {
@@ -941,7 +954,13 @@
           "$type": "endpoints"
         },
         "interfaces": {
-          "openaiChatCompletions": {"baseUrl": "https://app.adapter.test.com"}
+          "openaiChatCompletions": {
+            "baseUrl": "https://app.adapter.test.com",
+            "defaultHeaders": {
+              "x-dial-cache-policy": "cache-priority",
+              "x-dial-custom-header": "foo-bar"
+            }
+          }
         },
         "responsesEndpoint": "http://application2/responses",
         "responsesDefaults": {
@@ -978,7 +997,8 @@
           "allowedTools": ["classify_text"],
           "configDelivery": "header",
           "forwardPerRequestKey": false
-        }
+        },
+        "defaultHeaders": {}
       }
     }
   ],
