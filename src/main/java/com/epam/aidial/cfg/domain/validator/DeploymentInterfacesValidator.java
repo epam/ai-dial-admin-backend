@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 @Component
 public class DeploymentInterfacesValidator {
 
-    private static final Pattern PATH_TOKEN = Pattern.compile("\\{([^}]*)}");
+    private static final Pattern PATH_TOKEN = Pattern.compile("\\{([^{}]*)}");
     private static final Set<String> SUPPORTED_PATH_TOKENS = Set.of("id", "overrideName");
 
     private final FeaturesValidator featuresValidator;
