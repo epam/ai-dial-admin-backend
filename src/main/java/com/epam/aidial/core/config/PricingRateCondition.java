@@ -1,16 +1,16 @@
-package com.epam.aidial.cfg.domain.model;
+package com.epam.aidial.core.config;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class Condition {
+public class PricingRateCondition {
 
     @NotNull
     private String field;
 
     @NotNull
-    private Operator operator;
+    private PricingRateOperator operator;
 
     @NotNull
     private Object value;

@@ -15,7 +15,7 @@ public class PricingRateDto {
     private String rate;
 
     // node shape; ifTrue/ifFalse omitted -> falls back to the prompt rate
-    private ConditionDto test;
+    private PricingRateConditionDto test;
     private PricingRateDto ifTrue;
     private PricingRateDto ifFalse;
 

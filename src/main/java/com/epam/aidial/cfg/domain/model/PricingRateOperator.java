@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.domain.model;
 
-public enum Operator {
+public enum PricingRateOperator {
     EQ,
     NE,
     GT,

@@ -1,9 +1,9 @@
 package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.epam.aidial.cfg.domain.model.Condition;
-import com.epam.aidial.cfg.domain.model.Operator;
 import com.epam.aidial.cfg.domain.model.PricingRate;
+import com.epam.aidial.cfg.domain.model.PricingRateCondition;
+import com.epam.aidial.cfg.domain.model.PricingRateOperator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,9 +42,9 @@ class PricingRateEntityMapperTest {
 
     @Test
     void roundTrips_decisionTreeNode() {
-        Condition condition = new Condition();
+        PricingRateCondition condition = new PricingRateCondition();
         condition.setField("ttl");
-        condition.setOperator(Operator.EQ);
+        condition.setOperator(PricingRateOperator.EQ);
         condition.setValue("1h");
 
         PricingRate ifTrue = new PricingRate();
@@ -62,7 +62,7 @@ class PricingRateEntityMapperTest {
 
         assertThat(restored.isLeaf()).isFalse();
         assertThat(restored.getTest().getField()).isEqualTo("ttl");
-        assertThat(restored.getTest().getOperator()).isEqualTo(Operator.EQ);
+        assertThat(restored.getTest().getOperator()).isEqualTo(PricingRateOperator.EQ);
         assertThat(restored.getTest().getValue()).isEqualTo("1h");
         assertThat(restored.getIfTrue().getRate()).isEqualTo("0.000006");
         assertThat(restored.getIfFalse().getRate()).isEqualTo("0.00000375");
