@@ -15,7 +15,7 @@ public class PricingRate {
     private String rate;
 
     // node shape; ifTrue/ifFalse omitted -> falls back to the prompt rate
-    private Condition test;
+    private PricingRateCondition test;
     private PricingRate ifTrue;
     private PricingRate ifFalse;
 

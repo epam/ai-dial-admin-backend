@@ -1,7 +1,7 @@
 package com.epam.aidial.core.config.databind;
 
-import com.epam.aidial.core.config.Condition;
 import com.epam.aidial.core.config.PricingRate;
+import com.epam.aidial.core.config.PricingRateCondition;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -31,14 +31,14 @@ public class PricingRateDeserializer extends JsonDeserializer<PricingRate> {
         }
 
         if (p.getCurrentToken() == JsonToken.START_OBJECT) {
-            Condition test = null;
+            PricingRateCondition test = null;
             PricingRate ifTrue = null;
             PricingRate ifFalse = null;
             while (p.nextToken() != JsonToken.END_OBJECT) {
                 String name = p.getCurrentName();
                 p.nextToken();
                 switch (name) {
-                    case "test" -> test = p.readValueAs(Condition.class);
+                    case "test" -> test = p.readValueAs(PricingRateCondition.class);
                     case "ifTrue" -> ifTrue = deserialize(p, ctx);
                     case "ifFalse" -> ifFalse = deserialize(p, ctx);
                     default -> p.skipChildren();

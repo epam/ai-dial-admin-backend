@@ -35,7 +35,7 @@ class PricingRateTest {
 
         assertThat(rate.isLeaf()).isFalse();
         assertThat(rate.getTest().getField()).isEqualTo("ttl");
-        assertThat(rate.getTest().getOperator()).isEqualTo(Operator.EQ);
+        assertThat(rate.getTest().getOperator()).isEqualTo(PricingRateOperator.EQ);
         assertThat(rate.getTest().getValue()).isEqualTo("1h");
         assertThat(rate.getIfTrue().getRate()).isEqualTo("0.000006");
         assertThat(rate.getIfFalse().getRate()).isEqualTo("0.00000375");
@@ -96,7 +96,7 @@ class PricingRateTest {
         PricingRate roundTripped = mapper.readValue(mapper.writeValueAsString(rate), PricingRate.class);
 
         assertThat(roundTripped.getTest().getField()).isEqualTo("ttl");
-        assertThat(roundTripped.getTest().getOperator()).isEqualTo(Operator.EQ);
+        assertThat(roundTripped.getTest().getOperator()).isEqualTo(PricingRateOperator.EQ);
         assertThat(roundTripped.getIfTrue().getRate()).isEqualTo("0.000006");
         assertThat(roundTripped.getIfFalse().getRate()).isEqualTo("0.00000375");
     }

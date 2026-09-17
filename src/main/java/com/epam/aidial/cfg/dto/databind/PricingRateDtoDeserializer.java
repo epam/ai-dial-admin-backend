@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.dto.databind;
 
-import com.epam.aidial.cfg.dto.ConditionDto;
+import com.epam.aidial.cfg.dto.PricingRateConditionDto;
 import com.epam.aidial.cfg.dto.PricingRateDto;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
@@ -31,14 +31,14 @@ public class PricingRateDtoDeserializer extends JsonDeserializer<PricingRateDto>
         }
 
         if (p.getCurrentToken() == JsonToken.START_OBJECT) {
-            ConditionDto test = null;
+            PricingRateConditionDto test = null;
             PricingRateDto ifTrue = null;
             PricingRateDto ifFalse = null;
             while (p.nextToken() != JsonToken.END_OBJECT) {
                 String name = p.getCurrentName();
                 p.nextToken();
                 switch (name) {
-                    case "test" -> test = p.readValueAs(ConditionDto.class);
+                    case "test" -> test = p.readValueAs(PricingRateConditionDto.class);
                     case "ifTrue" -> ifTrue = deserialize(p, ctx);
                     case "ifFalse" -> ifFalse = deserialize(p, ctx);
                     default -> p.skipChildren();

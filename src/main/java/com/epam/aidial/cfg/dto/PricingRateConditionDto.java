@@ -4,13 +4,13 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class ConditionDto {
+public class PricingRateConditionDto {
 
     @NotNull
     private String field;
 
     @NotNull
-    private OperatorDto operator;
+    private PricingRateOperatorDto operator;
 
     @NotNull
     private Object value;

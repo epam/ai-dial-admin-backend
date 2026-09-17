@@ -1,10 +1,10 @@
-package com.epam.aidial.cfg.dto;
+package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum OperatorDto {
+public enum PricingRateOperator {
 
     EQ("=="),
     NE("!="),
@@ -16,7 +16,7 @@ public enum OperatorDto {
     @JsonValue
     private final String symbol;
 
-    OperatorDto(String symbol) {
+    PricingRateOperator(String symbol) {
         this.symbol = symbol;
     }
 }
