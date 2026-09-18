@@ -14,7 +14,9 @@ public class Pricing {
     @JsonDeserialize(using = DoubleStringDeserializer.class)
     private String completion;
 
-    private PricingRate cacheRead; // 0.47.0, type changed to PricingRate in 0.48.0
+    @JsonDeserialize(using = DoubleStringDeserializer.class)
+    private String cacheRead; // 0.47.0
 
-    private PricingRate cacheWrite; // 0.47.0, type changed to PricingRate in 0.48.0
+    @JsonDeserialize(using = DoubleStringDeserializer.class)
+    private String cacheWrite; // 0.47.0
 }
