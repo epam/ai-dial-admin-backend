@@ -43,6 +43,9 @@
             "custom_temperature_supported": true,
             "reasoning_efforts": [],
             "skills_supported": false
+          },
+          "defaults": {
+            "temperature": 0.5
           }
         }
       },

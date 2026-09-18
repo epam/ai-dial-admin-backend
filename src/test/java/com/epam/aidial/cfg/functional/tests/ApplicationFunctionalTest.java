@@ -132,12 +132,15 @@ public abstract class ApplicationFunctionalTest {
         ApplicationDto applicationDto = createBaseApplicationDto("1");
         DeploymentInterfaceDto chatInterface = new DeploymentInterfaceDto();
         chatInterface.setBaseUrl("https://app.adapter.test.com");
+        chatInterface.setDefaults(Map.of("temperature", 0.5));
         applicationDto.setInterfaces(Map.of("openaiChatCompletions", chatInterface));
         applicationFacade.createApplication(applicationDto);
 
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
         Assertions.assertNull(actual.getEndpoint());
         Assertions.assertEquals(applicationDto.getInterfaces(), actual.getInterfaces());
+        assertThat(actual.getInterfaces().get("openaiChatCompletions").getDefaults())
+                .containsExactlyInAnyOrderEntriesOf(Map.of("temperature", 0.5));
     }
 
     @Test

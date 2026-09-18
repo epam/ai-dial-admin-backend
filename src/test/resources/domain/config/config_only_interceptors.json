@@ -15,7 +15,10 @@
       "endpoint": "https://example.com/interceptor",
       "interfaces": {
         "openaiChatCompletions": {
-          "base_url": "https://interceptor.adapter.example.com"
+          "base_url": "https://interceptor.adapter.example.com",
+          "defaults": {
+            "temperature": 0.5
+          }
         }
       },
       "displayName": "Sample Interceptor",

@@ -131,6 +131,8 @@ public abstract class ModelFunctionalTest {
         FeaturesDto responsesFeatures = new FeaturesDto();
         responsesFeatures.setReasoningEfforts(List.of());
         responsesInterface.setFeatures(responsesFeatures);
+        Map<String, Object> defaults = Map.of("temperature", 0.5);
+        responsesInterface.setDefaults(defaults);
         modelDto.setInterfaces(Map.of(
                 "openaiChatCompletions", chatInterface,
                 "openaiResponses", responsesInterface,
@@ -146,6 +148,9 @@ public abstract class ModelFunctionalTest {
                 .containsExactly("low", "medium", "high", "xhigh", "max");
         // an explicitly empty list survives the round trip: it clears the model-level list in Core
         assertThat(actual.getInterfaces().get("openaiResponses").getFeatures().getReasoningEfforts()).isEmpty();
+        Assertions.assertNull(actual.getInterfaces().get("openaiChatCompletions").getDefaults());
+        assertThat(actual.getInterfaces().get("openaiResponses").getDefaults())
+                .containsExactlyInAnyOrderEntriesOf(defaults);
     }
 
     @Test
