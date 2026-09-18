@@ -208,7 +208,15 @@
       "displayName": "Test Interceptor1",
       "endpoint": "https://endpoint.test.com/interceptor",
       "interfaces": {
-        "openaiChatCompletions": {"base_url": "https://interceptor.adapter.test.com"}
+        "openaiChatCompletions": {
+          "base_url": "https://interceptor.adapter.test.com",
+          "override_paths": {
+            "createResponse": "/v1/responses",
+            "getResponseById": "/v1/responses/{id}",
+            "deleteResponseById": "/custom/delete/{id}",
+            "cancelResponse": "/custom/cancel/{id}"
+          }
+        }
       },
       "userRoles": [
         "testRole1"

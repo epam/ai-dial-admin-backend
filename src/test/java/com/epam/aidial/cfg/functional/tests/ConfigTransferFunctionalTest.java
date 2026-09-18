@@ -3159,6 +3159,75 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(exportedInterface.getFeatures()).isNull();
     }
 
+    /**
+     * Interface-level {@code overridePaths} (Core 0.48.0) must survive a full CORE export/import round
+     * trip, keyed by interface path mapping and carrying the {@code {id}}/{@code {overrideName}} tokens.
+     */
+    @Test
+    void testExportImport_CoreFormatKeepsInterfaceOverridePaths() throws IOException {
+        ModelDto modelDto = createModelDto("1");
+
+        DeploymentInterfaceDto responsesInterface = new DeploymentInterfaceDto();
+        responsesInterface.setBaseUrl("https://model.adapter.test.com");
+        Map<String, String> overridePaths = Map.of(
+                "createResponse", "/v1/{overrideName}/responses",
+                "getResponse", "/v1/{overrideName}/responses/{id}");
+        responsesInterface.setOverridePaths(overridePaths);
+
+        DeploymentInterfaceDto chatInterface = new DeploymentInterfaceDto();
+        chatInterface.setBaseUrl("https://model.adapter.test.com");
+
+        modelDto.setInterfaces(Map.of(
+                "openaiChatCompletions", chatInterface,
+                "openaiResponses", responsesInterface));
+        modelFacade.createModel(modelDto);
+
+        String exportedJson = exportModelsInCoreFormat("0.48.0");
+
+        Config exported = jsonMapper.readValue(exportedJson, Config.class);
+        var exportedInterfaces = exported.getModels().get("model1").getInterfaces();
+        // no overridePaths declared -> nothing exported
+        Assertions.assertThat(exportedInterfaces.get("openaiChatCompletions").getOverridePaths()).isEmpty();
+        Assertions.assertThat(exportedInterfaces.get("openaiResponses").getOverridePaths())
+                .containsExactlyInAnyOrderEntriesOf(overridePaths);
+        Assertions.assertThat(exportedJson.replaceAll("\\s", "")).contains("\"override_paths\"");
+
+        modelFacade.deleteModel("model1");
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                exportedJson.getBytes(StandardCharsets.UTF_8)
+        );
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
+        ModelDto reimported = modelFacade.getModel("model1");
+        Assertions.assertThat(reimported.getInterfaces().get("openaiChatCompletions").getOverridePaths()).isNullOrEmpty();
+        Assertions.assertThat(reimported.getInterfaces().get("openaiResponses").getOverridePaths())
+                .containsExactlyInAnyOrderEntriesOf(overridePaths);
+    }
+
+    /**
+     * Older Core versions know no interface-level {@code overridePaths}, so the field is filtered out
+     * while the interface itself - which still carries usable routing - survives.
+     */
+    @Test
+    void testExport_CoreFormatStripsInterfaceOverridePathsForOlderTargetVersion() throws IOException {
+        ModelDto modelDto = createModelDto("1");
+        DeploymentInterfaceDto anthropicInterface = new DeploymentInterfaceDto();
+        anthropicInterface.setBaseUrl("https://model.adapter.test.com");
+        anthropicInterface.setOverridePaths(Map.of("createMessage", "/v1/{overrideName}/messages"));
+        modelDto.setInterfaces(Map.of("anthropicMessages", anthropicInterface));
+        modelFacade.createModel(modelDto);
+
+        Config exported = jsonMapper.readValue(exportModelsInCoreFormat("0.47.0"), Config.class);
+
+        var exportedInterface = exported.getModels().get("model1").getInterfaces().get("anthropicMessages");
+        Assertions.assertThat(exportedInterface).isNotNull();
+        Assertions.assertThat(exportedInterface.getBaseUrl()).isEqualTo("https://model.adapter.test.com");
+        Assertions.assertThat(exportedInterface.getOverridePaths()).isNullOrEmpty();
+    }
+
     private String exportModelsInCoreFormat(String targetVersion) throws IOException {
         FullExportRequest request = new FullExportRequest();
         request.setExportFormat(ExportFormat.CORE);
