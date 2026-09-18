@@ -646,12 +646,64 @@
           "type": "number"
         },
         "cacheRead": {
-          "type": "number"
+          "$ref": "#/definitions/PricingRate"
         },
         "cacheWrite": {
-          "type": "number"
+          "$ref": "#/definitions/PricingRate"
         }
       }
+    },
+    "PricingRate": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "test": {
+              "$ref": "#/definitions/Condition"
+            },
+            "ifTrue": {
+              "$ref": "#/definitions/PricingRate"
+            },
+            "ifFalse": {
+              "$ref": "#/definitions/PricingRate"
+            }
+          },
+          "required": [
+            "test"
+          ]
+        }
+      ]
+    },
+    "Condition": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "operator": {
+          "$ref": "#/definitions/Operator"
+        },
+        "value": {}
+      },
+      "required": [
+        "field",
+        "operator",
+        "value"
+      ]
+    },
+    "Operator": {
+      "type": "string",
+      "enum": [
+        "==",
+        "!=",
+        ">",
+        "<",
+        ">=",
+        "<="
+      ]
     },
     "TokenLimits": {
       "type": "object",
