@@ -18,8 +18,9 @@ public class PricingRateDtoDeserializer extends JsonDeserializer<PricingRateDto>
 
     @Override
     public PricingRateDto deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
-        if (p.getCurrentToken() == JsonToken.VALUE_STRING) {
-            String rate = p.getValueAsString();
+        JsonToken token = p.getCurrentToken();
+        if (token == JsonToken.VALUE_STRING || token == JsonToken.VALUE_NUMBER_FLOAT || token == JsonToken.VALUE_NUMBER_INT) {
+            String rate = p.getText();
             try {
                 Double.parseDouble(rate);
             } catch (NumberFormatException e) {

@@ -41,6 +41,15 @@ class PricingRateEntityMapperTest {
     }
 
     @Test
+    void mapToPricingRate_legacyUnquotedNumber_parsesAsLeafRate() {
+        // pre-existing rows stored the raw double as plain text, e.g. "0.0000000065", not as a JSON string
+        PricingRate restored = mapper.mapToPricingRate("0.0000000065");
+
+        assertThat(restored.isLeaf()).isTrue();
+        assertThat(restored.getRate()).isEqualTo("0.0000000065");
+    }
+
+    @Test
     void roundTrips_decisionTreeNode() {
         PricingRateCondition condition = new PricingRateCondition();
         condition.setField("ttl");
