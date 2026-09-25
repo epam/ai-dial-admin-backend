@@ -155,6 +155,7 @@
       "name": "testInterceptor1",
       "displayName": "Test Interceptor1",
       "endpoint": "https://endpoint.test.com/interceptor",
+      "responsesEndpoint": "https://testInterceptor1/responses",
       "author": "test-author",
       "createdAt": 12345,
       "updatedAt": 12345,

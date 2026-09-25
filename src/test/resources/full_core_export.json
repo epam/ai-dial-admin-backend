@@ -425,6 +425,7 @@
     "testInterceptor1": {
       "name": "testInterceptor1",
       "endpoint": "https://endpoint.test.com/interceptor",
+      "responsesEndpoint": "https://testInterceptor1/responses",
       "displayName": "Test Interceptor1",
       "forwardAuthToken": false,
       "features": {
