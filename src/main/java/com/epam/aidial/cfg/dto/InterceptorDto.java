@@ -19,6 +19,8 @@ public class InterceptorDto {
     private String name;
     @Endpoint
     private String endpoint;
+    @Endpoint
+    private String responsesEndpoint;
     @Valid
     private Map<String, DeploymentInterfaceDto> interfaces;
     private String iconUrl;
