@@ -22,6 +22,15 @@ class PricingRateTest {
     }
 
     @Test
+    void deserialize_leafRateNumber() throws Exception {
+        PricingRate rate = mapper.readValue("0.0000000065", PricingRate.class);
+
+        assertThat(rate.isLeaf()).isTrue();
+        assertThat(rate.getRate()).isEqualTo("0.0000000065");
+        assertThat(rate.getTest()).isNull();
+    }
+
+    @Test
     void deserialize_decisionTreeNode() throws Exception {
         String json = """
                 {
