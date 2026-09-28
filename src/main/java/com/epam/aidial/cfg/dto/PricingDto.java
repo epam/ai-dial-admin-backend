@@ -14,9 +14,7 @@ public class PricingDto {
     @JsonDeserialize(using = DoubleStringDeserializer.class)
     private String completion;
 
-    @JsonDeserialize(using = DoubleStringDeserializer.class)
-    private String cacheRead;
+    private PricingRateDto cacheRead;
 
-    @JsonDeserialize(using = DoubleStringDeserializer.class)
-    private String cacheWrite;
+    private PricingRateDto cacheWrite;
 }
