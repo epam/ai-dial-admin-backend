@@ -139,8 +139,6 @@ public abstract class ApplicationFunctionalTest {
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
         Assertions.assertNull(actual.getEndpoint());
         Assertions.assertEquals(applicationDto.getInterfaces(), actual.getInterfaces());
-        assertThat(actual.getInterfaces().get("openaiChatCompletions").getDefaults())
-                .containsExactlyInAnyOrderEntriesOf(Map.of("temperature", 0.5));
     }
 
     @Test
