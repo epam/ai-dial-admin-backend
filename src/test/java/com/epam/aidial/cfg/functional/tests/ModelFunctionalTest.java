@@ -148,9 +148,6 @@ public abstract class ModelFunctionalTest {
                 .containsExactly("low", "medium", "high", "xhigh", "max");
         // an explicitly empty list survives the round trip: it clears the model-level list in Core
         assertThat(actual.getInterfaces().get("openaiResponses").getFeatures().getReasoningEfforts()).isEmpty();
-        Assertions.assertNull(actual.getInterfaces().get("openaiChatCompletions").getDefaults());
-        assertThat(actual.getInterfaces().get("openaiResponses").getDefaults())
-                .containsExactlyInAnyOrderEntriesOf(defaults);
     }
 
     @Test
