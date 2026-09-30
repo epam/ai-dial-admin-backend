@@ -27,8 +27,15 @@
       ],
       "endpoint": "https://endpoint1/embeddings",
       "interfaces": {
-        "openaiChatCompletions": {"base_url": "https://model.adapter.test.com"},
-        "anthropicMessages": {"base_url": "https://model.adapter.test.com"}
+        "openaiChatCompletions": {
+          "base_url": "https://model.adapter.test.com"
+        },
+        "anthropicMessages": {
+          "base_url": "https://model.adapter.test.com",
+          "defaults": {
+            "temperature": 0.5
+          }
+        }
       },
       "responsesEndpoint": "http://model1/responses",
       "responsesDefaults": {
@@ -208,7 +215,12 @@
       "displayName": "Test Interceptor1",
       "endpoint": "https://endpoint.test.com/interceptor",
       "interfaces": {
-        "openaiChatCompletions": {"base_url": "https://interceptor.adapter.test.com"}
+        "openaiChatCompletions": {
+          "base_url": "https://interceptor.adapter.test.com",
+          "defaults": {
+            "temperature": 0.5
+          }
+        }
       },
       "userRoles": [
         "testRole1"

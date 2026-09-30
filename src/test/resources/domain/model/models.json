@@ -151,6 +151,9 @@
           "rateEndpoint": "/anthropic/rate",
           "toolsSupported": true,
           "reasoningEfforts": ["low", "medium", "high", "xhigh", "max"]
+        },
+        "defaults": {
+          "temperature": 0.5
         }
       }
     },

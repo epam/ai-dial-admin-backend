@@ -33,4 +33,11 @@ public class DeploymentInterface {
      * populated and therefore always sent to DIAL Core. To inherit, leave this null.
      */
     private Features features;
+
+    /**
+     * Body parameters added to a request for this interface that carries none under that key.
+     * Declaring any replaces the deployment-level {@code defaults}/{@code responsesDefaults} for
+     * this interface rather than adding to them.
+     */
+    private Map<String, Object> defaults;
 }

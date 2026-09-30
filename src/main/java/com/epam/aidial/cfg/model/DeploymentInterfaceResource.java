@@ -11,4 +11,5 @@ public class DeploymentInterfaceResource {
     private Map<String, String> defaultHeaders;
     private InterfaceModeResource mode;
     private FeaturesResource features;
+    private Map<String, Object> defaults;
 }

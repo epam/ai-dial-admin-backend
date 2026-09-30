@@ -132,6 +132,7 @@ public abstract class ApplicationFunctionalTest {
         ApplicationDto applicationDto = createBaseApplicationDto("1");
         DeploymentInterfaceDto chatInterface = new DeploymentInterfaceDto();
         chatInterface.setBaseUrl("https://app.adapter.test.com");
+        chatInterface.setDefaults(Map.of("temperature", 0.5));
         applicationDto.setInterfaces(Map.of("openaiChatCompletions", chatInterface));
         applicationFacade.createApplication(applicationDto);
 

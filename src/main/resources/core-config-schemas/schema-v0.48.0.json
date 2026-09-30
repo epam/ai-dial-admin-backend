@@ -1197,6 +1197,10 @@
         "features": {
           "$ref": "#/definitions/CoreFeatures",
           "description": "Feature flags for this interface only, overriding the deployment-level features. Absent means the interface inherits them all."
+        },
+        "defaults": {
+          "type": "object",
+          "description": "Body parameters added to a request for this interface that carries none under that key. Declaring any replaces the deployment-level defaults/responsesDefaults for this interface rather than adding to them."
         }
       }
     },

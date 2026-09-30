@@ -22,6 +22,9 @@
         "features": {
           "contentPartsSupported": true,
           "reasoningEfforts": []
+        },
+        "defaults": {
+          "temperature": 0.5
         }
       }
     },
