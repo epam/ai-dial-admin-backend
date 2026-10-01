@@ -25,6 +25,9 @@
         },
         "overridePaths": {
           "createChatCompletion": "/v1/{overrideName}/chat/completions"
+        },
+        "defaults": {
+          "temperature": 0.5
         }
       }
     },

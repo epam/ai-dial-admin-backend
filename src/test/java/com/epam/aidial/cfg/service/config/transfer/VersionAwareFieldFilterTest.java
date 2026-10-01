@@ -450,6 +450,37 @@ class VersionAwareFieldFilterTest {
         assertThat(overridePaths.get("getResponse").asText()).isEqualTo("/v1/{overrideName}/responses/{id}");
     }
 
+    @Test
+    void filterForTargetVersion_interfaceDefaultsKeptWhenTargetVersionSupportsThem() throws IOException {
+        // given
+        mockRealSchema("0.48.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "interfaces": {
+                        "openaiResponses": {
+                          "base_url": "http://model.adapter",
+                          "defaults": {
+                            "temperature": 0.5
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode defaults = result.get("models").get("m1").get("interfaces")
+                .get("openaiResponses").get("defaults");
+        assertThat(defaults.get("temperature").asDouble()).isEqualTo(0.5);
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"0.46.0", "0.47.0"})
     void filterForTargetVersion_interfaceOverridePathsStrippedButInterfaceKeptForOlderTargetVersions(String version)
@@ -479,6 +510,37 @@ class VersionAwareFieldFilterTest {
         JsonNode deploymentInterface = result.get("models").get("m1").get("interfaces").get("openaiChatCompletions");
         assertThat(deploymentInterface.get("base_url").asText()).isEqualTo("http://model.adapter");
         assertThat(deploymentInterface.has("override_paths")).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0.46.0", "0.47.0"})
+    void filterForTargetVersion_interfaceDefaultsStrippedButInterfaceKeptForOlderTargetVersions(String version)
+            throws IOException {
+        // given
+        mockRealSchema(version);
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "interfaces": {
+                        "openaiChatCompletions": {
+                          "base_url": "http://model.adapter",
+                          "defaults": {"temperature": 0.5}
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then the interface itself survives - only the unsupported defaults field is stripped
+        JsonNode deploymentInterface = result.get("models").get("m1").get("interfaces").get("openaiChatCompletions");
+        assertThat(deploymentInterface.get("base_url").asText()).isEqualTo("http://model.adapter");
+        assertThat(deploymentInterface.has("defaults")).isFalse();
     }
 
     @Test

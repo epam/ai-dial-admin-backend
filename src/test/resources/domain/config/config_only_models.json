@@ -33,6 +33,9 @@
           "override_paths": {
             "createMessage": "/v1/{overrideName}/messages",
             "getMessage": "/v1/{overrideName}/messages/{id}"
+          },
+          "defaults": {
+            "temperature": 0.5
           }
         }
       },

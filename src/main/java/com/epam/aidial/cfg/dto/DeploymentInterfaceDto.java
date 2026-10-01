@@ -40,6 +40,13 @@ public class DeploymentInterfaceDto {
     private FeaturesDto features;
 
     /**
+     * Body parameters added to a request for this interface that carries none under that key.
+     * Declaring any replaces the deployment-level {@code defaults}/{@code responsesDefaults} for
+     * this interface rather than adding to them.
+     */
+    private Map<String, Object> defaults;
+
+    /**
      * Upstream paths replacing the operation's default path under the {@link #baseUrl}, keyed by
      * interface path mapping. Only {@code {id}} and {@code {overrideName}} are substituted; any other
      * {@code {token}} is rejected by {@code com.epam.aidial.cfg.domain.validator.DeploymentInterfacesValidator}.
