@@ -222,6 +222,60 @@ class VersionAwareFieldFilterTest {
     }
 
     @Test
+    void filterEntityNodeForTargetVersion_oneOfBranchFlatRate_kept() throws Exception {
+        // given the same oneOf schema as above, but with the flat-rate branch of cacheRead - it must
+        // keep passing through unchanged now that the object branch is also merged in
+        JsonNode schema = MAPPER.readTree("""
+                {
+                  "properties": {
+                    "models": {
+                      "patternProperties": {
+                        ".*": {
+                          "properties": {
+                            "pricing": {
+                              "properties": {
+                                "cacheRead": {
+                                  "oneOf": [
+                                    {"type": "number"},
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "test": {
+                                          "properties": {"field": {}}
+                                        },
+                                        "ifTrue": {},
+                                        "ifFalse": {}
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                """);
+        when(schemaLoader.loadSchema(VERSION)).thenReturn(schema);
+
+        JsonNode entityNode = MAPPER.readTree("""
+                {
+                  "pricing": {
+                    "cacheRead": "0.5"
+                  }
+                }
+                """);
+
+        // when
+        JsonNode actualResult = filter.filterEntityNodeForTargetVersion(entityNode, "models");
+
+        // then
+        assertThat(actualResult).isEqualTo(entityNode);
+    }
+
+    @Test
     void filterEntityNodeForTargetVersion_entityTypeNotInSchema_throwsSchemaValidationException() throws Exception {
         // given
         JsonNode schema = MAPPER.readTree("""
@@ -646,6 +700,66 @@ class VersionAwareFieldFilterTest {
         assertThat(cacheRead.get("ifTrue").asText()).isEqualTo("0.0005");
         assertThat(cacheRead.get("ifFalse").asText()).isEqualTo("0.001");
         assertThat(schemaChecker.check(result, "0.48.0")).isEmpty();
+    }
+
+    @Test
+    void filterForTargetVersion_pricingCacheReadFlatRateKeptAt048() throws IOException {
+        // given a plain flat-rate cacheRead at 0.48.0+ - the oneOf's flat-rate branch - it must keep
+        // passing through unaffected by the decision-tree branch now being merged in too
+        mockRealSchema("0.48.0");
+        VersionAwareSchemaChecker schemaChecker = new VersionAwareSchemaChecker(schemaLoader);
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "pricing": {
+                        "unit": "token",
+                        "prompt": "0.001",
+                        "completion": "0.002",
+                        "cacheRead": "0.0005"
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        assertThat(result.get("models").get("m1").get("pricing").get("cacheRead").asText()).isEqualTo("0.0005");
+        assertThat(schemaChecker.check(result, "0.48.0")).isEmpty();
+    }
+
+    @Test
+    void filterForTargetVersion_pricingCacheReadFlatRateKeptAt047() throws IOException {
+        // given a flat-rate cacheRead at 0.47.0, where the schema declares it as a plain number with no
+        // oneOf at all - unrelated to the PricingRate oneOf, kept here as a pre-0.48.0 regression guard
+        mockRealSchema("0.47.0");
+        VersionAwareSchemaChecker schemaChecker = new VersionAwareSchemaChecker(schemaLoader);
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "pricing": {
+                        "unit": "token",
+                        "prompt": "0.001",
+                        "completion": "0.002",
+                        "cacheRead": "0.0005"
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        assertThat(result.get("models").get("m1").get("pricing").get("cacheRead").asText()).isEqualTo("0.0005");
+        assertThat(schemaChecker.check(result, "0.47.0")).isEmpty();
     }
 
     @Test
