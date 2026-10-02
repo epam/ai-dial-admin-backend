@@ -59,8 +59,9 @@ public class VersionAwareSchemaChecker {
             return;
         }
 
-        // Open object (no properties/patternProperties/allOf/$ref) — everything is allowed inside
-        if (!resolvedSchema.has("properties") && !resolvedSchema.has("allOf") && !resolvedSchema.has("$ref")) {
+        // Open object (no properties/patternProperties/allOf/oneOf/anyOf/$ref) — everything is allowed inside
+        if (!resolvedSchema.has("properties") && !resolvedSchema.has("allOf")
+                && !resolvedSchema.has("oneOf") && !resolvedSchema.has("anyOf") && !resolvedSchema.has("$ref")) {
             return;
         }
 
@@ -117,6 +118,19 @@ public class VersionAwareSchemaChecker {
         }
         if (schema.has("allOf")) {
             for (JsonNode sub : schema.get("allOf")) {
+                props.putAll(resolveProperties(resolveRef(sub, root), root));
+            }
+        }
+        // oneOf/anyOf: a field is known if it is defined by any branch - e.g. PricingRate, whose object
+        // branch (the {test, ifTrue, ifFalse} decision tree) is merged in alongside its flat-rate number
+        // branch, which contributes no properties of its own.
+        if (schema.has("oneOf")) {
+            for (JsonNode sub : schema.get("oneOf")) {
+                props.putAll(resolveProperties(resolveRef(sub, root), root));
+            }
+        }
+        if (schema.has("anyOf")) {
+            for (JsonNode sub : schema.get("anyOf")) {
                 props.putAll(resolveProperties(resolveRef(sub, root), root));
             }
         }

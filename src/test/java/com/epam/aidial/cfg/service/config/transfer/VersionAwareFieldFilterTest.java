@@ -703,6 +703,85 @@ class VersionAwareFieldFilterTest {
     }
 
     @Test
+    void filterForTargetVersion_pricingCacheReadNestedDecisionTreeKeptAt048() throws IOException {
+        // given
+        mockRealSchema("0.48.0");
+        VersionAwareSchemaChecker schemaChecker = new VersionAwareSchemaChecker(schemaLoader);
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "pricing": {
+                        "unit": "token",
+                        "prompt": "0.001",
+                        "completion": "0.002",
+                        "cacheRead": {
+                          "test": {"field": "tokenCount", "operator": ">", "value": 1000},
+                          "ifTrue": {
+                            "test": {"field": "tokenCount", "operator": ">", "value": 10000},
+                            "ifTrue": "0.0001",
+                            "ifFalse": "0.0005"
+                          },
+                          "ifFalse": "0.001"
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode cacheRead = result.get("models").get("m1").get("pricing").get("cacheRead");
+        JsonNode nestedIfTrue = cacheRead.get("ifTrue");
+        assertThat(nestedIfTrue.get("test").get("field").asText()).isEqualTo("tokenCount");
+        assertThat(nestedIfTrue.get("ifTrue").asText()).isEqualTo("0.0001");
+        assertThat(nestedIfTrue.get("ifFalse").asText()).isEqualTo("0.0005");
+        assertThat(cacheRead.get("ifFalse").asText()).isEqualTo("0.001");
+        assertThat(schemaChecker.check(result, "0.48.0")).isEmpty();
+    }
+
+    @Test
+    void filterForTargetVersion_pricingCacheWriteDecisionTreeKeptAt048() throws IOException {
+        // given
+        mockRealSchema("0.48.0");
+        VersionAwareSchemaChecker schemaChecker = new VersionAwareSchemaChecker(schemaLoader);
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "pricing": {
+                        "unit": "token",
+                        "prompt": "0.001",
+                        "completion": "0.002",
+                        "cacheWrite": {
+                          "test": {"field": "tokenCount", "operator": ">", "value": 1000},
+                          "ifTrue": "0.0015",
+                          "ifFalse": "0.002"
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode cacheWrite = result.get("models").get("m1").get("pricing").get("cacheWrite");
+        assertThat(cacheWrite.get("test").get("field").asText()).isEqualTo("tokenCount");
+        assertThat(cacheWrite.get("test").get("operator").asText()).isEqualTo(">");
+        assertThat(cacheWrite.get("ifTrue").asText()).isEqualTo("0.0015");
+        assertThat(cacheWrite.get("ifFalse").asText()).isEqualTo("0.002");
+        assertThat(schemaChecker.check(result, "0.48.0")).isEmpty();
+    }
+
+    @Test
     void filterForTargetVersion_pricingCacheReadFlatRateKeptAt048() throws IOException {
         // given a plain flat-rate cacheRead at 0.48.0+ - the oneOf's flat-rate branch - it must keep
         // passing through unaffected by the decision-tree branch now being merged in too
