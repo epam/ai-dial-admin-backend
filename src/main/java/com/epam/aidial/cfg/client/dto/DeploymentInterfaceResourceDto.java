@@ -21,4 +21,5 @@ public class DeploymentInterfaceResourceDto {
     private InterfaceModeResourceDto mode;
     private FeaturesDto features;
     private Map<String, Object> defaults;
+    private Map<String, String> overridePaths;
 }

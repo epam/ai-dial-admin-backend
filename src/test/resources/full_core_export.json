@@ -161,8 +161,13 @@
               "high",
               "xhigh",
               "max"
+
             ],
             "skills_supported": false
+          },
+          "override_paths": {
+            "createMessage": "/v1/{overrideName}/messages",
+            "getMessage": "/v1/{overrideName}/messages/{id}"
           }
         }
       },
@@ -316,6 +321,9 @@
             "custom_temperature_supported": true,
             "reasoning_efforts": [],
             "skills_supported": false
+          },
+          "override_paths": {
+            "createChatCompletion": "/v1/{overrideName}/chat/completions"
           }
         }
       },

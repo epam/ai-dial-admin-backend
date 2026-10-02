@@ -18,6 +18,7 @@ public class DeploymentInterfaceTypes {
 
     public static final Set<String> MODEL_INTERFACE_TYPES =
             Set.of(OPENAI_CHAT_COMPLETIONS, OPENAI_RESPONSES, ANTHROPIC_MESSAGES, OPENAI_EMBEDDINGS);
-    public static final Set<String> APPLICATION_INTERFACE_TYPES = Set.of(OPENAI_CHAT_COMPLETIONS);
+    public static final Set<String> APPLICATION_INTERFACE_TYPES =
+            Set.of(OPENAI_CHAT_COMPLETIONS, OPENAI_RESPONSES, ANTHROPIC_MESSAGES);
     public static final Set<String> INTERCEPTOR_INTERFACE_TYPES = Set.of(OPENAI_CHAT_COMPLETIONS);
 }

@@ -217,6 +217,12 @@
       "interfaces": {
         "openaiChatCompletions": {
           "base_url": "https://interceptor.adapter.test.com",
+          "override_paths": {
+            "createResponse": "/v1/responses",
+            "getResponseById": "/v1/responses/{id}",
+            "deleteResponseById": "/custom/delete/{id}",
+            "cancelResponse": "/custom/cancel/{id}"
+          },
           "defaults": {
             "temperature": 0.5
           }

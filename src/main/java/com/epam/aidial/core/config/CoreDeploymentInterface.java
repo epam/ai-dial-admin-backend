@@ -56,4 +56,14 @@ public class CoreDeploymentInterface { // 0.46.0
      */
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Map<String, Object> defaults = Map.of(); // 0.48.0
+
+    /**
+     * Upstream paths replacing the operation's default path under the {@code baseUrl}, keyed by
+     * interface path mapping. A value substitutes exactly two tokens: {@code {id}} renders the
+     * operation's id and {@code {overrideName}} the deployment's override name. Every other
+     * character, braces included, is path text forwarded as written.
+     */
+    @JsonAlias({"overridePaths", "override_paths"})
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> overridePaths = Map.of(); // 0.48.0
 }

@@ -123,14 +123,14 @@ class ApplicationValidatorTest {
         application.setDisplayName("display name");
         application.setDisplayVersion("1.0");
         application.setSource(new ApplicationEndpointsSource());
-        application.setInterfaces(interfaces("anthropicMessages", "http://app.adapter.test.com"));
+        application.setInterfaces(interfaces("openaiEmbeddings", "http://app.adapter.test.com"));
 
         Deployment deployment = new Deployment("deploymentName");
         application.setDeployment(deployment);
 
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Unsupported interface type 'anthropicMessages'");
+                .hasMessageContaining("Unsupported interface type 'openaiEmbeddings'");
     }
 
     @Test

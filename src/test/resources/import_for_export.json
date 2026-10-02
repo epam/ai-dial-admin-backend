@@ -27,6 +27,10 @@
             "rate_endpoint": "https://model.adapter.test.com/rate",
             "tools_supported": true,
             "reasoning_efforts": ["low", "medium", "high", "xhigh", "max"]
+          },
+          "override_paths": {
+            "createMessage": "/v1/{overrideName}/messages",
+            "getMessage": "/v1/{overrideName}/messages/{id}"
           }
         }
       },
@@ -82,6 +86,9 @@
           "features": {
             "tools_supported": true,
             "content_parts_supported": true
+          },
+          "override_paths": {
+            "createChatCompletion": "/v1/{overrideName}/chat/completions"
           }
         }
       },

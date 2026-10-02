@@ -12,4 +12,5 @@ public class DeploymentInterfaceResource {
     private InterfaceModeResource mode;
     private FeaturesResource features;
     private Map<String, Object> defaults;
+    private Map<String, String> overridePaths;
 }

@@ -1201,6 +1201,13 @@
         "defaults": {
           "type": "object",
           "description": "Body parameters added to a request for this interface that carries none under that key. Declaring any replaces the deployment-level defaults/responsesDefaults for this interface rather than adding to them."
+        },
+        "overridePaths": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Upstream paths replacing the operation's default path under the base url, keyed by interface path mapping. Only the {id} and {overrideName} tokens are substituted; all other text, braces included, is forwarded as written."
         }
       }
     },

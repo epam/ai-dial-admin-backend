@@ -44,6 +44,9 @@
             "reasoning_efforts": [],
             "skills_supported": false
           },
+          "override_paths": {
+            "createChatCompletion": "/v1/{overrideName}/chat/completions"
+          },
           "defaults": {
             "temperature": 0.5
           }
