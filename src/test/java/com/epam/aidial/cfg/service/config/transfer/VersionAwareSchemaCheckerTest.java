@@ -228,6 +228,98 @@ class VersionAwareSchemaCheckerTest {
     }
 
     @Test
+    void oneOfBranchField_recognizedAsKnown() throws Exception {
+        JsonNode schema = mapper.readTree("""
+                {
+                  "properties": {
+                    "rate": {
+                      "oneOf": [
+                        {"type": "number"},
+                        {"type": "object", "properties": {"test": {}, "ifTrue": {}, "ifFalse": {}}}
+                      ]
+                    }
+                  }
+                }
+                """);
+        when(schemaLoader.loadSchema("0.37.0")).thenReturn(schema);
+
+        JsonNode node = mapper.readTree("""
+                {"rate":{"test":"x","ifTrue":"0.1","ifFalse":"0.2"}}
+                """);
+        List<String> violations = checker.check(node, "0.37.0");
+
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void unknownFieldInsideOneOfObject_reportedAsViolation() throws Exception {
+        JsonNode schema = mapper.readTree("""
+                {
+                  "properties": {
+                    "rate": {
+                      "oneOf": [
+                        {"type": "number"},
+                        {"type": "object", "properties": {"test": {}, "ifTrue": {}, "ifFalse": {}}}
+                      ]
+                    }
+                  }
+                }
+                """);
+        when(schemaLoader.loadSchema("0.37.0")).thenReturn(schema);
+
+        JsonNode node = mapper.readTree("""
+                {"rate":{"test":"x","ifTrue":"0.1","bogusField":"y"}}
+                """);
+        List<String> violations = checker.check(node, "0.37.0");
+
+        assertThat(violations).containsExactly(
+                "Field 'rate.bogusField' is not supported by Core version 0.37.0");
+    }
+
+    @Test
+    void selfReferentialOneOf_recursesIntoNestedBranches() throws Exception {
+        // mimics PricingRate: oneOf of a flat number or a {test, ifTrue, ifFalse} node whose ifTrue/ifFalse
+        // reference the same definition again, so an unknown field two levels deep must still be caught
+        JsonNode schema = mapper.readTree("""
+                {
+                  "properties": {
+                    "rate": {"$ref": "#/definitions/PricingRate"}
+                  },
+                  "definitions": {
+                    "PricingRate": {
+                      "oneOf": [
+                        {"type": "number"},
+                        {
+                          "type": "object",
+                          "properties": {
+                            "test": {},
+                            "ifTrue": {"$ref": "#/definitions/PricingRate"},
+                            "ifFalse": {"$ref": "#/definitions/PricingRate"}
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+                """);
+        when(schemaLoader.loadSchema("0.48.0")).thenReturn(schema);
+
+        JsonNode node = mapper.readTree("""
+                {
+                  "rate": {
+                    "test": "outer",
+                    "ifTrue": {"test": "inner", "ifTrue": "0.1", "bogusField": "y"},
+                    "ifFalse": "0.2"
+                  }
+                }
+                """);
+        List<String> violations = checker.check(node, "0.48.0");
+
+        assertThat(violations).containsExactly(
+                "Field 'rate.ifTrue.bogusField' is not supported by Core version 0.48.0");
+    }
+
+    @Test
     void openObjectField_noViolationForContents() throws Exception {
         // 'defaults' is an open object in the schema — its children should not be flagged
         JsonNode schema = mapper.readTree("""

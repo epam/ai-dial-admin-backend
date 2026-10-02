@@ -252,6 +252,7 @@ public class VersionAwareFieldFilter {
         ObjectNode filteredNode = objectMapper.createObjectNode();
 
         processSchemaInheritance(node, schema, filteredNode);
+        processSchemaComposition(node, schema, filteredNode);
         processSchemaReferences(node, schema, filteredNode);
         processProperties(node, schema, filteredNode);
 
@@ -272,6 +273,29 @@ public class VersionAwareFieldFilter {
                 JsonNode parentFiltered = filterNodeBySchema(node, parentSchema);
                 copyFields(parentFiltered, filteredNode);
             }
+        }
+    }
+
+    /**
+     * Processes schema composition via oneOf/anyOf directives - e.g. {@code PricingRate}, which can be
+     * either a flat rate or a {@code {test, ifTrue, ifFalse}} decision-tree node. Every branch is filtered
+     * against the same node and the results are merged, the same way {@link #processSchemaInheritance}
+     * merges {@code allOf} branches: a branch whose shape doesn't match the node (e.g. a flat-number branch,
+     * when the node is actually the decision-tree object) simply contributes no fields.
+     */
+    private void processSchemaComposition(JsonNode node, JsonNode schema, ObjectNode filteredNode) {
+        processComposedBranches(node, schema.get("oneOf"), filteredNode);
+        processComposedBranches(node, schema.get("anyOf"), filteredNode);
+    }
+
+    private void processComposedBranches(JsonNode node, JsonNode branches, ObjectNode filteredNode) {
+        if (branches == null || !branches.isArray()) {
+            return;
+        }
+
+        for (JsonNode branchSchema : branches) {
+            JsonNode branchFiltered = filterNodeBySchema(node, branchSchema);
+            copyFields(branchFiltered, filteredNode);
         }
     }
 
@@ -414,6 +438,8 @@ public class VersionAwareFieldFilter {
             }
         } else if (fieldSchema.has("$ref")) {
             processFieldReference(fieldName, fieldValue, fieldSchema, parentSchema, filteredNode);
+        } else if (fieldSchema.has("oneOf") || fieldSchema.has("anyOf")) {
+            filteredNode.set(fieldName, filterNodeBySchema(fieldValue, fieldSchema));
         } else {
             filteredNode.set(fieldName, fieldValue);
         }
