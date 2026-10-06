@@ -109,4 +109,54 @@ class PricingRateTest {
         assertThat(roundTripped.getIfTrue().getRate()).isEqualTo("0.000006");
         assertThat(roundTripped.getIfFalse().getRate()).isEqualTo("0.00000375");
     }
+
+    @Test
+    void flat_createsLeaf() {
+        PricingRate rate = PricingRate.flat("0.001");
+
+        assertThat(rate.isLeaf()).isTrue();
+        assertThat(rate.getRate()).isEqualTo("0.001");
+        assertThat(rate.getTest()).isNull();
+    }
+
+    @Test
+    void pricing_flatPromptAndCompletionStrings_stillAccepted() throws Exception {
+        Pricing pricing = mapper.readValue("""
+                {"unit": "token", "prompt": "0.000003", "completion": "0.000015"}
+                """, Pricing.class);
+
+        assertThat(pricing.getPrompt().isLeaf()).isTrue();
+        assertThat(pricing.getPrompt().getRate()).isEqualTo("0.000003");
+        assertThat(pricing.getCompletion().getRate()).isEqualTo("0.000015");
+    }
+
+    @Test
+    void pricing_promptDecisionTree_accepted() throws Exception {
+        Pricing pricing = mapper.readValue("""
+                {"unit": "token",
+                 "prompt": {"test": {"field": "promptTokens", "operator": ">", "value": "128000"},
+                            "ifTrue": "0.000006", "ifFalse": "0.000003"},
+                 "completion": "0.000015"}
+                """, Pricing.class);
+
+        assertThat(pricing.getPrompt().isLeaf()).isFalse();
+        assertThat(pricing.getPrompt().getTest().getField()).isEqualTo("promptTokens");
+        assertThat(pricing.getPrompt().getIfTrue().getRate()).isEqualTo("0.000006");
+        assertThat(pricing.getPrompt().getIfFalse().getRate()).isEqualTo("0.000003");
+        assertThat(mapper.writeValueAsString(pricing)).contains("\"ifFalse\":\"0.000003\"");
+    }
+
+    @Test
+    void pricing_nonNumericPrompt_rejected() {
+        assertThatThrownBy(() -> mapper.readValue("{\"prompt\": \"abc\"}", Pricing.class))
+                .isInstanceOf(InvalidFormatException.class);
+    }
+
+    @Test
+    void pricing_unitNoneWithoutRates_accepted() throws Exception {
+        Pricing pricing = mapper.readValue("{\"unit\": \"none\"}", Pricing.class);
+
+        assertThat(pricing.getPrompt()).isNull();
+        assertThat(pricing.getCompletion()).isNull();
+    }
 }

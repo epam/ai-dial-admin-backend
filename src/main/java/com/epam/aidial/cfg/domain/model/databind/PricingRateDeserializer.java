@@ -26,9 +26,7 @@ public class PricingRateDeserializer extends JsonDeserializer<PricingRate> {
             } catch (NumberFormatException e) {
                 throw InvalidFormatException.from(p, "Expected a JSON string with a valid double", rate, PricingRate.class);
             }
-            PricingRate pricingRate = new PricingRate();
-            pricingRate.setRate(rate);
-            return pricingRate;
+            return PricingRate.flat(rate);
         }
 
         if (p.getCurrentToken() == JsonToken.START_OBJECT) {

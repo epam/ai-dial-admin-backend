@@ -33,6 +33,7 @@ public class ModelValidator {
     private final FeaturesValidator featuresValidator;
     private final DeploymentInterfacesValidator deploymentInterfacesValidator;
     private final UpstreamValidator upstreamValidator;
+    private final PricingValidator pricingValidator;
     private final ModelEndpointUtils modelEndpointUtils;
 
     private final String modelNameValidationPattern;
@@ -42,6 +43,7 @@ public class ModelValidator {
                           FeaturesValidator featuresValidator,
                           DeploymentInterfacesValidator deploymentInterfacesValidator,
                           UpstreamValidator upstreamValidator,
+                          PricingValidator pricingValidator,
                           ModelEndpointUtils modelEndpointUtils,
                           @Value("${validation.model.name:}") String modelNameValidationPattern) {
         this.displayFieldsValidator = displayFieldsValidator;
@@ -49,6 +51,7 @@ public class ModelValidator {
         this.featuresValidator = featuresValidator;
         this.deploymentInterfacesValidator = deploymentInterfacesValidator;
         this.upstreamValidator = upstreamValidator;
+        this.pricingValidator = pricingValidator;
         this.modelEndpointUtils = modelEndpointUtils;
         this.modelNameValidationPattern = modelNameValidationPattern;
     }
@@ -58,6 +61,7 @@ public class ModelValidator {
         validateDisplayNameDisplayVersion(model);
         validateModelSource(model);
         featuresValidator.validate(model.getFeatures());
+        pricingValidator.validate(model.getPricing(), model.getDeployment().getName());
     }
 
     public void validateUpdate(String modelName, Model model) {
@@ -65,6 +69,7 @@ public class ModelValidator {
         validateDisplayNameDisplayVersion(model);
         validateModelSource(model);
         featuresValidator.validate(model.getFeatures());
+        pricingValidator.validate(model.getPricing(), model.getDeployment().getName());
     }
 
     private void validateModelName(Model model) {
