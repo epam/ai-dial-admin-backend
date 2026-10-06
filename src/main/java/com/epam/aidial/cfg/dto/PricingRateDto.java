@@ -19,6 +19,12 @@ public class PricingRateDto {
     private PricingRateDto ifTrue;
     private PricingRateDto ifFalse;
 
+    public static PricingRateDto flat(String rate) {
+        PricingRateDto pricingRate = new PricingRateDto();
+        pricingRate.setRate(rate);
+        return pricingRate;
+    }
+
     public boolean isLeaf() {
         return rate != null;
     }

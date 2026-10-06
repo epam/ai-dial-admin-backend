@@ -842,6 +842,89 @@ class VersionAwareFieldFilterTest {
     }
 
     @Test
+    void filterForTargetVersion_pricingPromptDecisionTreeKeptAt049() throws IOException {
+        // given
+        mockRealSchema("0.49.0");
+        VersionAwareSchemaChecker schemaChecker = new VersionAwareSchemaChecker(schemaLoader);
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "pricing": {"unit": "token",
+                          "prompt": {"test": {"field": "promptTokens", "operator": ">", "value": 128000}, "ifTrue": "0.000006", "ifFalse": "0.000003"},
+                          "completion": "0.000015"}
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode pricing = result.get("models").get("m1").get("pricing");
+        assertThat(pricing.get("prompt").get("test").get("field").asText()).isEqualTo("promptTokens");
+        assertThat(pricing.get("prompt").get("test").get("operator").asText()).isEqualTo(">");
+        assertThat(pricing.get("prompt").get("ifTrue").asText()).isEqualTo("0.000006");
+        assertThat(pricing.get("prompt").get("ifFalse").asText()).isEqualTo("0.000003");
+        assertThat(pricing.get("completion").asText()).isEqualTo("0.000015");
+        assertThat(schemaChecker.check(result, "0.49.0")).isEmpty();
+    }
+
+    @Test
+    void filterForTargetVersion_pricingFlatPromptCompletionKeptAt049() throws IOException {
+        // given
+        mockRealSchema("0.49.0");
+        VersionAwareSchemaChecker schemaChecker = new VersionAwareSchemaChecker(schemaLoader);
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "pricing": {"unit": "token", "prompt": "0.000003", "completion": "0.000015"}
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode pricing = result.get("models").get("m1").get("pricing");
+        assertThat(pricing.get("prompt").asText()).isEqualTo("0.000003");
+        assertThat(pricing.get("completion").asText()).isEqualTo("0.000015");
+        assertThat(schemaChecker.check(result, "0.49.0")).isEmpty();
+    }
+
+    @Test
+    void filterForTargetVersion_pricingFlatPromptCompletionKeptAt048() throws IOException {
+        // given
+        mockRealSchema("0.48.0");
+        VersionAwareSchemaChecker schemaChecker = new VersionAwareSchemaChecker(schemaLoader);
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "pricing": {"unit": "token", "prompt": "0.000003", "completion": "0.000015"}
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode pricing = result.get("models").get("m1").get("pricing");
+        assertThat(pricing.get("prompt").asText()).isEqualTo("0.000003");
+        assertThat(pricing.get("completion").asText()).isEqualTo("0.000015");
+        assertThat(schemaChecker.check(result, "0.48.0")).isEmpty();
+    }
+
+    @Test
     void filterForTargetVersion_deploymentBaseUrlKeptAtVersionThatSupportsIt() throws IOException {
         // given the deployment-level base URL introduced in 0.48.0: it is the fallback that serves every
         // interface declaring none of its own, so it must not be filtered out of the export

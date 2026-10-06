@@ -19,6 +19,12 @@ public class PricingRate {
     private PricingRate ifTrue;
     private PricingRate ifFalse;
 
+    public static PricingRate flat(String rate) {
+        PricingRate pricingRate = new PricingRate();
+        pricingRate.setRate(rate);
+        return pricingRate;
+    }
+
     public boolean isLeaf() {
         return rate != null;
     }

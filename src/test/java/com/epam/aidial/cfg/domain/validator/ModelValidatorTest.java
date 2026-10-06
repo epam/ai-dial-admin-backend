@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.DeploymentInterface;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ModelType;
+import com.epam.aidial.cfg.domain.model.Pricing;
 import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.model.UpstreamInterface;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
@@ -67,6 +68,8 @@ class ModelValidatorTest {
     @Mock
     private FeaturesValidator featuresValidator;
     @Mock
+    private PricingValidator pricingValidator;
+    @Mock
     private ModelEndpointUtils modelEndpointUtils;
 
     private ModelValidator modelValidator;
@@ -75,7 +78,7 @@ class ModelValidatorTest {
     void setUp() {
         modelValidator = new ModelValidator(displayFieldsValidator,
                 deploymentValidator, featuresValidator, new DeploymentInterfacesValidator(new FeaturesValidator()),
-                new UpstreamValidator(), modelEndpointUtils, null);
+                new UpstreamValidator(), pricingValidator, modelEndpointUtils, null);
     }
 
     @Test
@@ -92,6 +95,36 @@ class ModelValidatorTest {
 
         // then
         verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Model", "text");
+    }
+
+    @Test
+    void validateCreation_shouldDelegateToPricingValidator() {
+        // given
+        Model model = new Model();
+        model.setDeployment(new Deployment("text"));
+        Pricing pricing = new Pricing();
+        model.setPricing(pricing);
+
+        // when
+        modelValidator.validateCreation(model);
+
+        // then
+        verify(pricingValidator).validate(pricing, "text");
+    }
+
+    @Test
+    void validateUpdate_shouldDelegateToPricingValidator() {
+        // given
+        Model model = new Model();
+        model.setDeployment(new Deployment("text"));
+        Pricing pricing = new Pricing();
+        model.setPricing(pricing);
+
+        // when
+        modelValidator.validateUpdate("text", model);
+
+        // then
+        verify(pricingValidator).validate(pricing, "text");
     }
 
     @Test
