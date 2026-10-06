@@ -186,7 +186,7 @@ dependencies {
         implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.3') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('com.fasterxml.jackson.core:jackson-core:2.22.2') {
+        implementation ('com.fasterxml.jackson.core:jackson-core:2.21.7') {
             because("previous versions have vulnerabilities")
         }
         implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.25') {
