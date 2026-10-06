@@ -25,15 +25,6 @@ class PricingValidatorTest {
 
     private final PricingValidator validator = new PricingValidator();
 
-    @Test
-    void validate_shouldAcceptPricingWithPlainRates() {
-        // given
-        Pricing pricing = pricing("0.000004", "0.000002");
-
-        // when / then
-        assertThatNoException().isThrownBy(() -> validator.validate(pricing, MODEL));
-    }
-
     @ParameterizedTest
     @ValueSource(strings = {"0.000004", "0.000002", "0.001"})
     void validate_shouldAcceptPlainRates(String rate) {
