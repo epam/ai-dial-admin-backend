@@ -1,2 +1,5 @@
 #Fixed version already in use, false positive per https://github.com/aquasecurity/trivy/discussions/9745
 CVE-2025-59250 pkg:maven/com.microsoft.sqlserver/mssql-jdbc exp:2026-12-31
+
+# Fixed only in Spring Framework 7.0.9; no 6.2.x backport yet. Vulnerable path (XsltView) is not used by the service
+CVE-2026-47884 pkg:maven/org.springframework/spring-webmvc exp:2026-12-31
