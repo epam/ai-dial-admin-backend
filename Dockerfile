@@ -18,9 +18,11 @@ WORKDIR /app
 
 # TODO: remove explicit openssl pinning once eclipse-temurin:21-jre-alpine ships with libcrypto3>=3.5.8-r0 (CVE-2026-14456)
 # TODO: remove explicit libexpat pinning once eclipse-temurin:21-jre-alpine ships with libexpat>=2.8.5-r0 (CVE-2026-76956/76957/93990)
+# TODO: remove explicit libpng pinning once eclipse-temurin:21-jre-alpine ships with libpng>=1.6.59-r0 (CVE-2026-46675)
 RUN apk add --no-cache 'libcrypto3=3.5.8-r0' 'libssl3=3.5.8-r0' 'openssl=3.5.8-r0' && \
     apk add --no-cache 'p11-kit>=0.26.2-r0' 'p11-kit-trust>=0.26.2-r0' && \
     apk add --no-cache 'libexpat>=2.8.5-r0' && \
+    apk add --no-cache 'libpng>=1.6.59-r0' && \
     apk add --no-cache bash && \
     adduser -u 1001 -D appuser && \
     mkdir -p /app/data && \
