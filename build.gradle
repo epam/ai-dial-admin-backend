@@ -122,8 +122,8 @@ dependencies {
 
     implementation 'org.apache.commons:commons-csv:1.13.0'
 
-    implementation platform('io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.12.0')
-    implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter:2.12.0'
+    implementation platform('io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.28.1')
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter:2.28.1'
 
     implementation 'io.micrometer:micrometer-registry-prometheus'
 //    implementation 'io.micrometer:micrometer-registry-otlp'
