@@ -219,6 +219,18 @@ dependencies {
         implementation("org.bouncycastle:bcprov-jdk18on:1.85") {
             because("previous versions have vulnerabilities")
         }
+        implementation("io.vertx:vertx-core:4.5.27") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.vertx:vertx-web-client:4.5.27") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.vertx:vertx-web-common:4.5.27") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.vertx:vertx-auth-common:4.5.27") {
+            because("previous versions have vulnerabilities")
+        }
         testImplementation('org.apache.commons:commons-compress:1.27.1') {
             because("previous versions have vulnerabilities")
         }
