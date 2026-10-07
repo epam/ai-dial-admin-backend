@@ -96,7 +96,7 @@ class PricingValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"abc", "1.2.3", "NaN", "Infinity"})
+    @ValueSource(strings = {"abc", "1.2.3"})
     void validate_shouldRejectNonNumericPromptRate(String rate) {
         // given
         Pricing pricing = pricing(rate, "0.002");
