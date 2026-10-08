@@ -24,4 +24,6 @@ jobs:
     uses: epam/ai-dial-ci/.github/workflows/java_release.yml@4.12.0
     with:
       promote: ${{ github.event_name == 'workflow_dispatch' && inputs.promote }}
+      trivy-severity: "CRITICAL,HIGH,MEDIUM,LOW"
+      trivy-severity-for-sarif: "CRITICAL,HIGH,MEDIUM,LOW"
     secrets: inherit
