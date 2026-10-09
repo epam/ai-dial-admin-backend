@@ -43,27 +43,24 @@ public class ConfigSourceConfigMap extends CompositeConfigSource {
 
     @Override
     protected void setSource(SourceValue source, boolean createResources) {
-        try {
-            k8ConfigService.withClient(kubernetesClient -> {
+        k8ConfigService.withClient(kubernetesClient -> {
+            try {
                 k8ConfigService.updateConfigMapEntry(kubernetesClient, source.sourceName(), configKey, source.value());
-                return null;
-            });
-        } catch (KubernetesClientException e) {
-            if (e.getCode() == HttpStatus.NOT_FOUND.getCode()) {
-                if (createResources) {
-                    log.info("ConfigMap is not found, creating new one: {}", source.sourceName());
-                    k8ConfigService.withClient(client -> {
-                        k8ConfigService.createConfigMapEntry(client, source.sourceName(), configKey, source.value());
-                        return null;
-                    });
+            } catch (KubernetesClientException e) {
+                if (e.getCode() == HttpStatus.NOT_FOUND.getCode()) {
+                    if (createResources) {
+                        log.info("ConfigMap is not found, creating new one: {}", source.sourceName());
+                        k8ConfigService.createConfigMapEntry(kubernetesClient, source.sourceName(), configKey, source.value());
+                    } else {
+                        log.info("ConfigMap is not found " + source.sourceName());
+                        throw new IllegalStateException("ConfigMap is not found " + source.sourceName());
+                    }
                 } else {
-                    log.info("ConfigMap is not found " + source.sourceName());
-                    throw new IllegalStateException("ConfigMap is not found " + source.sourceName());
+                    throw e;
                 }
-            } else {
-                throw e;
             }
-        }
+            return null;
+        });
     }
 
     @Override

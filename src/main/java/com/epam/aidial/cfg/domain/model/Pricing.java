@@ -5,8 +5,8 @@ import lombok.Data;
 @Data
 public class Pricing {
     private String unit;
-    private String prompt;
-    private String completion;
-    private String cacheRead;
-    private String cacheWrite;
+    private PricingRate prompt;
+    private PricingRate completion;
+    private PricingRate cacheRead;
+    private PricingRate cacheWrite;
 }

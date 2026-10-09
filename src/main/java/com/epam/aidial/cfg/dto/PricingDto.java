@@ -1,22 +1,16 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.core.config.databind.DoubleStringDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 
 @Data
 public class PricingDto {
     private String unit;
 
-    @JsonDeserialize(using = DoubleStringDeserializer.class)
-    private String prompt;
+    private PricingRateDto prompt;
 
-    @JsonDeserialize(using = DoubleStringDeserializer.class)
-    private String completion;
+    private PricingRateDto completion;
 
-    @JsonDeserialize(using = DoubleStringDeserializer.class)
-    private String cacheRead;
+    private PricingRateDto cacheRead;
 
-    @JsonDeserialize(using = DoubleStringDeserializer.class)
-    private String cacheWrite;
+    private PricingRateDto cacheWrite;
 }

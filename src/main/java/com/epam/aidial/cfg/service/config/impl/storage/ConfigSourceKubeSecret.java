@@ -43,27 +43,24 @@ public class ConfigSourceKubeSecret extends CompositeConfigSource {
 
     @Override
     protected void setSource(SourceValue source, boolean createResources) {
-        try {
-            k8ConfigService.withClient(kubernetesClient -> {
+        k8ConfigService.withClient(kubernetesClient -> {
+            try {
                 k8ConfigService.updateSecretMapEntry(kubernetesClient, source.sourceName(), secretKey, source.value());
-                return null;
-            });
-        } catch (KubernetesClientException e) {
-            if (e.getCode() == HttpStatus.NOT_FOUND.getCode()) {
-                if (createResources) {
-                    log.info("Secret is not found, creating new one: {}", source.sourceName());
-                    k8ConfigService.withClient(client -> {
-                        k8ConfigService.createSecretMapEntry(client, source.sourceName(), secretKey, source.value());
-                        return null;
-                    });
+            } catch (KubernetesClientException e) {
+                if (e.getCode() == HttpStatus.NOT_FOUND.getCode()) {
+                    if (createResources) {
+                        log.info("Secret is not found, creating new one: {}", source.sourceName());
+                        k8ConfigService.createSecretMapEntry(kubernetesClient, source.sourceName(), secretKey, source.value());
+                    } else {
+                        log.info("Secret is not found " + source.sourceName());
+                        throw new IllegalStateException("Secret is not found " + source.sourceName());
+                    }
                 } else {
-                    log.info("Secret is not found " + source.sourceName());
-                    throw new IllegalStateException("Secret is not found " + source.sourceName());
+                    throw e;
                 }
-            } else {
-                throw e;
             }
-        }
+            return null;
+        });
     }
 
     @Override

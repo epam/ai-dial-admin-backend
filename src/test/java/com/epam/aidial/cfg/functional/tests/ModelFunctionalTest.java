@@ -131,6 +131,12 @@ public abstract class ModelFunctionalTest {
         FeaturesDto responsesFeatures = new FeaturesDto();
         responsesFeatures.setReasoningEfforts(List.of());
         responsesInterface.setFeatures(responsesFeatures);
+        Map<String, Object> defaults = Map.of("temperature", 0.5);
+        responsesInterface.setDefaults(defaults);
+        Map<String, String> overridePaths = Map.of(
+                "createResponse", "/v1/{overrideName}/responses",
+                "getResponse", "/v1/{overrideName}/responses/{id}");
+        responsesInterface.setOverridePaths(overridePaths);
         modelDto.setInterfaces(Map.of(
                 "openaiChatCompletions", chatInterface,
                 "openaiResponses", responsesInterface,

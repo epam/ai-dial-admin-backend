@@ -110,12 +110,15 @@ public abstract class InterceptorFunctionalTest {
         interceptorDto.setEndpoint(null);
         DeploymentInterfaceDto chatInterface = new DeploymentInterfaceDto();
         chatInterface.setBaseUrl("https://interceptor.adapter.test.com");
+        chatInterface.setDefaults(Map.of("temperature", 0.5));
         interceptorDto.setInterfaces(Map.of("openaiChatCompletions", chatInterface));
         interceptorFacade.createInterceptor(interceptorDto);
 
         InterceptorDto actual = interceptorFacade.getInterceptor(interceptorDto.getName());
         Assertions.assertNull(actual.getEndpoint());
         Assertions.assertEquals(interceptorDto.getInterfaces(), actual.getInterfaces());
+        assertThat(actual.getInterfaces().get("openaiChatCompletions").getDefaults())
+                .containsExactlyInAnyOrderEntriesOf(Map.of("temperature", 0.5));
     }
 
     @Test

@@ -48,4 +48,22 @@ public class CoreDeploymentInterface { // 0.46.0
      * complete effective set for that interface. Absent means the interface inherits everything.
      */
     private CoreFeatures features; // 0.48.0
+
+    /**
+     * Body parameters added to a request for this interface that carries none under that key.
+     * Declaring any replaces the deployment-level {@code defaults}/{@code responsesDefaults} for
+     * this interface rather than adding to them.
+     */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, Object> defaults = Map.of(); // 0.48.0
+
+    /**
+     * Upstream paths replacing the operation's default path under the {@code baseUrl}, keyed by
+     * interface path mapping. A value substitutes exactly two tokens: {@code {id}} renders the
+     * operation's id and {@code {overrideName}} the deployment's override name. Every other
+     * character, braces included, is path text forwarded as written.
+     */
+    @JsonAlias({"overridePaths", "override_paths"})
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> overridePaths = Map.of(); // 0.48.0
 }

@@ -4,6 +4,13 @@ buildscript {
             classpath ('org.apache.commons:commons-lang3:3.18.0') {
                 because("previous versions have vulnerabilities")
             }
+            // spring-boot-gradle-plugin -> spring-boot-buildpack-platform pulls a vulnerable jackson
+            classpath ('com.fasterxml.jackson.core:jackson-databind:2.22.3') {
+                because("previous versions have vulnerabilities")
+            }
+            classpath ('com.fasterxml.jackson.core:jackson-core:2.22.3') {
+                because("previous versions have vulnerabilities")
+            }
         }
     }
 }
@@ -12,7 +19,7 @@ plugins {
     id "java"
     id 'checkstyle'
     id 'io.freefair.lombok' version '8.0.1'
-    id 'org.springframework.boot' version '3.5.14'
+    id 'org.springframework.boot' version '3.5.15'
 }
 
 group = 'com.epam.aidial'
@@ -81,7 +88,7 @@ dependencies {
     implementation 'com.google.cloud:google-cloud-secretmanager:2.59.0'
     implementation 'com.google.cloud.sql:postgres-socket-factory:1.28.0'
     implementation 'com.google.guava:guava:33.4.8-jre'
-    implementation("org.jsoup:jsoup:1.23.1")
+    implementation("org.jsoup:jsoup:1.23.2")
     implementation 'io.modelcontextprotocol.sdk:mcp:0.11.3'
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -122,8 +129,8 @@ dependencies {
 
     implementation 'org.apache.commons:commons-csv:1.13.0'
 
-    implementation platform('io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.12.0')
-    implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter:2.12.0'
+    implementation platform('io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.28.1')
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter:2.28.1'
 
     implementation 'io.micrometer:micrometer-registry-prometheus'
 //    implementation 'io.micrometer:micrometer-registry-otlp'
@@ -133,12 +140,12 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-log4j2') {
         exclude group: 'org.apache.logging.log4j'
     }
-    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.25.4'
-    implementation 'org.apache.logging.log4j:log4j-core:2.25.4'
-    implementation 'org.apache.logging.log4j:log4j-jul:2.25.4'
+    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.26.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.26.1'
+    implementation 'org.apache.logging.log4j:log4j-jul:2.26.1'
     implementation 'io.opentelemetry:opentelemetry-sdk'
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
-    implementation 'io.opentelemetry.instrumentation:opentelemetry-log4j-appender-2.17:1.33.6-alpha'
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-log4j-appender-2.17:2.28.1-alpha'
 
     implementation project(':query-language')
 
@@ -183,10 +190,10 @@ dependencies {
         implementation('org.springframework:spring-webmvc:6.2.19') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.1') {
+        implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.3') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('com.fasterxml.jackson.core:jackson-core:2.22.1') {
+        implementation ('com.fasterxml.jackson.core:jackson-core:2.22.2') {
             because("previous versions have vulnerabilities")
         }
         implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.25') {
@@ -216,7 +223,19 @@ dependencies {
         implementation("io.netty:netty-transport-native-epoll:4.2.17.Final") {
             because("previous versions have vulnerabilities")
         }
-        implementation("org.bouncycastle:bcprov-jdk18on:1.84") {
+        implementation("org.bouncycastle:bcprov-jdk18on:1.85") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.vertx:vertx-core:4.5.27") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.vertx:vertx-web-client:4.5.27") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.vertx:vertx-web-common:4.5.27") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.vertx:vertx-auth-common:4.5.27") {
             because("previous versions have vulnerabilities")
         }
         testImplementation('org.apache.commons:commons-compress:1.27.1') {
