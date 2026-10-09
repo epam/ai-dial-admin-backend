@@ -23,66 +23,89 @@ public class PricingValidator {
             throw new IllegalArgumentException("Pricing 'unit' must not be null. Model: %s".formatted(entityName));
         }
 
-        validateNotBlank(pricing.getPrompt(), "prompt", entityName);
-        validateNotBlank(pricing.getCompletion(), "completion", entityName);
-        validateNotBlank(pricing.getCacheRead(), "cacheRead", entityName);
-        validateNotBlank(pricing.getCacheWrite(), "cacheWrite", entityName);
+        boolean isTokenUnit = TOKEN_UNIT.equals(pricing.getUnit());
 
-        if (TOKEN_UNIT.equals(pricing.getUnit())) {
-            return;
-        }
+        // Validate all rates
+        validateRate(pricing.getPrompt(), "prompt", isTokenUnit, pricing.getUnit(), entityName);
+        validateRate(pricing.getCompletion(), "completion", isTokenUnit, pricing.getUnit(), entityName);
+        validateRate(pricing.getCacheRead(), "cacheRead", isTokenUnit, pricing.getUnit(), entityName);
+        validateRate(pricing.getCacheWrite(), "cacheWrite", isTokenUnit, pricing.getUnit(), entityName);
 
-        if (pricing.getCacheRead() != null) {
-            throw new IllegalArgumentException(
-                    "Pricing 'cacheRead' is not allowed for unit '%s'. Model: %s".formatted(pricing.getUnit(), entityName));
+        // Cache rates only allowed for token unit
+        if (!isTokenUnit) {
+            if (pricing.getCacheRead() != null) {
+                throw new IllegalArgumentException(
+                        "Pricing 'cacheRead' is not allowed for unit '%s'. Model: %s".formatted(pricing.getUnit(), entityName));
+            }
+            if (pricing.getCacheWrite() != null) {
+                throw new IllegalArgumentException(
+                        "Pricing 'cacheWrite' is not allowed for unit '%s'. Model: %s".formatted(pricing.getUnit(), entityName));
+            }
         }
-        if (pricing.getCacheWrite() != null) {
-            throw new IllegalArgumentException(
-                    "Pricing 'cacheWrite' is not allowed for unit '%s'. Model: %s".formatted(pricing.getUnit(), entityName));
-        }
-        validatePlainRate(pricing.getPrompt(), "prompt", pricing.getUnit(), entityName);
-        validatePlainRate(pricing.getCompletion(), "completion", pricing.getUnit(), entityName);
     }
 
     /**
-     * Rejects an empty or blank rate anywhere in the rate, including all branches of a decision tree.
+     * Validates a PricingRate field according to the unit type and rules.
      */
-    private void validateNotBlank(PricingRate rate, String field, String entityName) {
+    private void validateRate(PricingRate rate, String field, boolean isTokenUnit, String unit, String entityName) {
         if (rate == null) {
             return;
         }
+
         if (rate.isLeaf()) {
+            // Validate leaf: must not be blank and must be a finite double
             if (StringUtils.isBlank(rate.getRate())) {
                 throw new IllegalArgumentException(
                         "Pricing '%s' must not be empty or blank. Model: %s".formatted(field, entityName));
             }
-            return;
+            validateFiniteDouble(rate.getRate(), field, entityName);
+        } else {
+            // Decision tree validation
+            if (!isTokenUnit) {
+                throw new IllegalArgumentException(
+                        "Pricing '%s' must be a plain numeric rate (decision tree is not allowed) for unit '%s'. Model: %s"
+                                .formatted(field, unit, entityName));
+            }
+            validateDecisionTree(rate, field, entityName);
         }
-        validateNotBlank(rate.getIfTrue(), field, entityName);
-        validateNotBlank(rate.getIfFalse(), field, entityName);
     }
 
-    private void validatePlainRate(PricingRate rate, String field, String unit, String entityName) {
-        if (rate == null) {
-            return;
-        }
-        if (!rate.isLeaf()) {
-            throw invalidRate(field, "decision tree", unit, entityName);
-        }
+    /**
+     * Validates that a rate string is a finite double value.
+     */
+    private void validateFiniteDouble(String rateStr, String field, String entityName) {
         double value;
         try {
-            value = Double.parseDouble(rate.getRate());
+            value = Double.parseDouble(rateStr);
         } catch (NumberFormatException e) {
-            throw invalidRate(field, rate.getRate(), unit, entityName);
+            throw new IllegalArgumentException(
+                    "Pricing '%s' must be a valid numeric rate, got '%s'. Model: %s"
+                            .formatted(field, rateStr, entityName));
         }
-        if (Double.isNaN(value) || Double.isInfinite(value)) {
-            throw invalidRate(field, rate.getRate(), unit, entityName);
+
+        if (Double.isNaN(value)) {
+            throw new IllegalArgumentException(
+                    "Pricing '%s' must be a finite number, got 'NaN'. Model: %s"
+                            .formatted(field, entityName));
+        }
+
+        if (Double.isInfinite(value)) {
+            throw new IllegalArgumentException(
+                    "Pricing '%s' must be a finite number, got 'Infinity'. Model: %s"
+                            .formatted(field, entityName));
         }
     }
 
-    private IllegalArgumentException invalidRate(String field, String rate, String unit, String entityName) {
-        return new IllegalArgumentException(
-                "Pricing '%s' must be a plain numeric rate (decision tree is not allowed) for unit '%s', got '%s'. Model: %s"
-                        .formatted(field, unit, rate, entityName));
+    /**
+     * Validates a decision tree structure recursively.
+     */
+    private void validateDecisionTree(PricingRate rate, String field, String entityName) {
+        // Recursively validate branches
+        if (rate.getIfTrue() != null) {
+            validateRate(rate.getIfTrue(), field, true, TOKEN_UNIT, entityName);
+        }
+        if (rate.getIfFalse() != null) {
+            validateRate(rate.getIfFalse(), field, true, TOKEN_UNIT, entityName);
+        }
     }
 }
