@@ -64,6 +64,14 @@ public class CoreUpstream {
     @JsonAlias({"interfaces", "dial:interfaces"})
     private Map<String, CoreUpstreamInterface> interfaces = Map.of(); // 0.48.0
 
+    /**
+     * HTTP header/scheme used to carry {@link #key} to this upstream on the route path. API_KEY (default)
+     * sends it as {@code API-KEY: <key>}; BEARER sends it as {@code Authorization: Bearer <key>}.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonAlias({"authType", "auth_type", "dial:authType"})
+    private CoreUpstreamAuthType authType; // 0.49.0
+
     public String toString() {
         return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint
                 + ", key=" + SecretUtils.mask(this.getKey())

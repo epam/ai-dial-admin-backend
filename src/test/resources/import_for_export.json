@@ -259,7 +259,8 @@
           "extraData": "{\"custom\":\"data1\"}",
           "secretExtraData": "{\"secret\":\"value1\"}",
           "weight": 1,
-          "tier": 0
+          "tier": 0,
+          "authType": "api_key"
         },
         {
           "endpoint": "http://upstream2.example.com",
@@ -267,7 +268,8 @@
           "extraData": "{\"custom\":\"data2\"}",
           "secretExtraData": "{\"secret\":\"value2\"}",
           "weight": 2,
-          "tier": 1
+          "tier": 1,
+          "authType": "bearer"
         }
       ],
       "maxRetryAttempts": 3
@@ -293,14 +295,16 @@
           "key": "upstream-key-1",
           "extraData": "{\"custom\":\"data1\"}",
           "weight": 1,
-          "tier": 0
+          "tier": 0,
+          "authType": "bearer"
         },
         {
           "endpoint": "http://upstream2.example.com",
           "key": "upstream-key-2",
           "extraData": "{\"custom\":\"data2\"}",
           "weight": 2,
-          "tier": 1
+          "tier": 1,
+          "authType": "api_key"
         }
       ],
       "maxRetryAttempts": 3,

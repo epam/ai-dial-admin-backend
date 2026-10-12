@@ -831,6 +831,12 @@
             }
           },
           "additionalProperties": false
+        },
+        "authType": {
+          "type": "string",
+          "enum": ["API_KEY", "BEARER"],
+          "default": "API_KEY",
+          "description": "HTTP header/scheme used to carry key to upstream. API_KEY (default) sends as API-KEY header; BEARER sends as Authorization: Bearer"
         }
       }
     },
