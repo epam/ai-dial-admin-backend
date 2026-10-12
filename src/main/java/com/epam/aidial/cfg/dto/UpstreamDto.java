@@ -39,7 +39,7 @@ public class UpstreamDto {
     private String baseUrl;
     @Valid
     private Map<String, UpstreamInterfaceDto> interfaces = Map.of();
-    private UpstreamAuthTypeDto authType;
+    private UpstreamAuthTypeDto authType = UpstreamAuthTypeDto.API_KEY;
 
     public String toString() {
         return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint
