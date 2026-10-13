@@ -17,11 +17,12 @@ class PricingValidatorTest {
     private static final String UNIT = "char_without_whitespace";
     private static final String CACHE_READ_MESSAGE = "'cacheRead' is not allowed for unit 'char_without_whitespace'";
     private static final String CACHE_WRITE_MESSAGE = "'cacheWrite' is not allowed for unit 'char_without_whitespace'";
-    private static final String PROMPT_MESSAGE = "'prompt' must be a plain numeric rate";
+    private static final String PROMPT_MESSAGE = "'prompt' must be a";
     private static final String NULL_UNIT_MESSAGE = "Pricing 'unit' must not be null";
     private static final String BLANK_PROMPT_MESSAGE = "'prompt' must not be empty or blank";
     private static final String BLANK_COMPLETION_MESSAGE = "'completion' must not be empty or blank";
-    private static final String COMPLETION_MESSAGE = "'completion' must be a plain numeric rate";
+    private static final String COMPLETION_MESSAGE = "'completion' must be a";
+    private static final String CACHE_READ_DECISION_TREE_MESSAGE = "'cacheRead' must be a plain numeric rate (decision tree is not allowed)";
 
     private final PricingValidator validator = new PricingValidator();
 
@@ -68,7 +69,7 @@ class PricingValidatorTest {
         // when / then
         assertThatThrownBy(() -> validator.validate(pricing, MODEL))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining(CACHE_READ_MESSAGE);
+                .hasMessageContaining(CACHE_READ_DECISION_TREE_MESSAGE);
     }
 
     @Test

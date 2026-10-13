@@ -3,3 +3,8 @@ CVE-2025-59250 pkg:maven/com.microsoft.sqlserver/mssql-jdbc exp:2026-12-31
 
 # Fixed only in Spring Framework 7.0.9; no 6.2.x backport yet. Vulnerable path (XsltView) is not used by the service
 CVE-2026-47884 pkg:maven/org.springframework/spring-webmvc exp:2026-12-31
+
+# Fixed only in Spring Framework 7.0.9; no 6.2.x backport available. SSE with view feature is not used by the service
+# Upgrade requires Spring Boot 3.7+ (not yet released) and Gradle 8.11+ due to Java 21 bytecode in Spring Framework 7.x
+# Remediation plan: Upgrade when Spring Boot 3.7+ becomes available
+CVE-2026-47890 pkg:maven/org.springframework/spring-webmvc exp:2026-12-31
