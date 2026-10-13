@@ -794,13 +794,15 @@ public abstract class ModelFunctionalTest {
                           "responsesEndpoint": "http://localhost/responses",
                           "extraData": "{\\"temp\\":800}",
                           "weight": 1,
-                          "tier":0
+                          "tier":0,
+                          "authType": "API_KEY"
                         },
                         {
                           "endpoint": "http://localhost",
                           "extraData": "{\\"temp\\":951}",
                           "weight": 1,
-                          "tier":0
+                          "tier":0,
+                          "authType": "API_KEY"
                         }
                       ],
                       "overrideName": null,

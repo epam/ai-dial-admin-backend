@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,8 +13,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
@@ -26,11 +31,13 @@ class RouteValidatorTest {
     private DeploymentValidator deploymentValidator;
     @Mock
     private DisplayFieldsValidator displayFieldsValidator;
+    @Mock
+    private UpstreamValidator upstreamValidator;
     private RouteValidator routeValidator;
 
     @BeforeEach
     void setUp() {
-        routeValidator = new RouteValidator(deploymentValidator, displayFieldsValidator, null);
+        routeValidator = new RouteValidator(deploymentValidator, displayFieldsValidator, upstreamValidator, null);
     }
 
     @Test
@@ -97,6 +104,94 @@ class RouteValidatorTest {
         // when/then
         Assertions.assertThatThrownBy(() -> routeValidator.validateRouteCreation(route))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void validateRouteCreation_shouldCallUpstreamValidator() {
+        // given
+        String deploymentName = "test-route";
+        Deployment deployment = new Deployment(deploymentName);
+
+        Upstream upstream = new Upstream();
+        upstream.setEndpoint("http://localhost");
+        List<Upstream> upstreams = List.of(upstream);
+
+        Route route = new Route();
+        route.setDeployment(deployment);
+        route.setUpstreams(upstreams);
+
+        // when
+        routeValidator.validateRouteCreation(route);
+
+        // then
+        verify(upstreamValidator).validateForRoutes(upstreams, deploymentName);
+    }
+
+    @Test
+    void validateRouteCreation_shouldThrowExceptionWhenUpstreamValidatorThrows() {
+        // given
+        String deploymentName = "test-route";
+        Deployment deployment = new Deployment(deploymentName);
+
+        Upstream upstream = new Upstream();
+        upstream.setEndpoint("http://test-route");
+        List<Upstream> upstreams = List.of(upstream);
+
+        Route route = new Route();
+        route.setDeployment(deployment);
+        route.setUpstreams(upstreams);
+
+        doThrow(new IllegalArgumentException("BEARER requires key"))
+                .when(upstreamValidator).validateForRoutes(anyList(), any());
+
+        // when/then
+        assertThatThrownBy(() -> routeValidator.validateRouteCreation(route))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("BEARER requires key");
+    }
+
+    @Test
+    void validateUpdate_shouldCallUpstreamValidator() {
+        // given
+        String deploymentName = "test-route";
+        Deployment deployment = new Deployment(deploymentName);
+
+        Upstream upstream = new Upstream();
+        upstream.setEndpoint("http://test-route");
+        List<Upstream> upstreams = List.of(upstream);
+
+        Route route = new Route();
+        route.setDeployment(deployment);
+        route.setUpstreams(upstreams);
+
+        // when
+        routeValidator.validateUpdate(deploymentName, route);
+
+        // then
+        verify(upstreamValidator).validateForRoutes(upstreams, deploymentName);
+    }
+
+    @Test
+    void validateUpdate_shouldThrowExceptionWhenUpstreamValidatorThrows() {
+        // given
+        String deploymentName = "test-route";
+        Deployment deployment = new Deployment(deploymentName);
+
+        Upstream upstream = new Upstream();
+        upstream.setEndpoint("http://test-route");
+        List<Upstream> upstreams = List.of(upstream);
+
+        Route route = new Route();
+        route.setDeployment(deployment);
+        route.setUpstreams(upstreams);
+
+        doThrow(new IllegalArgumentException("BEARER requires key"))
+                .when(upstreamValidator).validateForRoutes(anyList(), any());
+
+        // when/then
+        assertThatThrownBy(() -> routeValidator.validateUpdate(deploymentName, route))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("BEARER requires key");
     }
 
 }
