@@ -30,26 +30,6 @@ public class UpstreamValidator {
         }
     }
 
-    /**
-     * Validates route-specific upstream requirements. Currently validates that BEARER authType
-     * requires a key to be present. This validation applies only to top-level routes, not models,
-     * as Core ignores authType for model upstreams.
-     */
-    public void validateForRoutes(List<Upstream> upstreams, String routeName) {
-        if (CollectionUtils.isEmpty(upstreams)) {
-            return;
-        }
-
-        for (int i = 0; i < upstreams.size(); i++) {
-            Upstream upstream = upstreams.get(i);
-            if (upstream.getAuthType() == UpstreamAuthType.BEARER && StringUtils.isBlank(upstream.getKey())) {
-                throw new IllegalArgumentException(
-                        "Upstream with authType BEARER requires a key. upstreams[%d]. Route: %s"
-                                .formatted(i, routeName));
-            }
-        }
-    }
-
     private void validate(Upstream upstream, int index, Set<String> allowedTypes, String entityKind, String entityName) {
         Map<String, UpstreamInterface> interfaces = upstream.getInterfaces();
         String baseUrl = upstream.getBaseUrl();
@@ -93,4 +73,25 @@ public class UpstreamValidator {
             }
         });
     }
+
+    /**
+     * Validates route-specific upstream requirements. Currently validates that BEARER authType
+     * requires a key to be present. This validation applies only to top-level routes, not models,
+     * as Core ignores authType for model upstreams.
+     */
+    public void validateForRoutes(List<Upstream> upstreams, String routeName) {
+        if (CollectionUtils.isEmpty(upstreams)) {
+            return;
+        }
+
+        for (int i = 0; i < upstreams.size(); i++) {
+            Upstream upstream = upstreams.get(i);
+            if (upstream.getAuthType() == UpstreamAuthType.BEARER && StringUtils.isBlank(upstream.getKey())) {
+                throw new IllegalArgumentException(
+                        "Upstream with authType BEARER requires a key. upstreams[%d]. Route: %s"
+                                .formatted(i, routeName));
+            }
+        }
+    }
+
 }
