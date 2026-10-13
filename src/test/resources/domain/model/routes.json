@@ -21,14 +21,16 @@
         "key": "upstream-key-1",
         "extraData": "metadata-1",
         "weight": 10,
-        "tier": 1
+        "tier": 1,
+        "authType": "bearer"
       },
       {
         "endpoint": "https://upstream2.example.com",
         "key": "upstream-key-2",
         "extraData": "metadata-2",
         "weight": 20,
-        "tier": 2
+        "tier": 2,
+        "authType": "api_key"
       }
     ],
     "maxRetryAttempts": 3,

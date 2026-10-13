@@ -22,7 +22,8 @@
             "custom": "data1"
           },
           "weight": 1,
-          "tier": 0
+          "tier": 0,
+          "authType": "api_key"
         },
         {
           "endpoint": "http://upstream2.example.com",
@@ -30,7 +31,8 @@
             "custom": "data2"
           },
           "weight": 2,
-          "tier": 1
+          "tier": 1,
+          "authType": "bearer"
         }
       ],
       "maxRetryAttempts": 3,
@@ -66,7 +68,8 @@
             "custom": "data1"
           },
           "weight": 1,
-          "tier": 0
+          "tier": 0,
+          "authType": "bearer"
         },
         {
           "endpoint": "http://upstream2.example.com",
@@ -74,7 +77,8 @@
             "custom": "data2"
           },
           "weight": 2,
-          "tier": 1
+          "tier": 1,
+          "authType": "api_key"
         }
       ],
       "maxRetryAttempts": 3,
