@@ -17,14 +17,17 @@ public class RouteValidator {
 
     private final DeploymentValidator deploymentValidator;
     private final DisplayFieldsValidator displayFieldsValidator;
+    private final UpstreamValidator upstreamValidator;
 
     private final String routeNameValidationPattern;
 
     public RouteValidator(DeploymentValidator deploymentValidator,
                           DisplayFieldsValidator displayFieldsValidator,
+                          UpstreamValidator upstreamValidator,
                           @Value("${validation.route.name:}") String routeNameValidationPattern) {
         this.deploymentValidator = deploymentValidator;
         this.displayFieldsValidator = displayFieldsValidator;
+        this.upstreamValidator = upstreamValidator;
         this.routeNameValidationPattern = routeNameValidationPattern;
     }
 
@@ -38,11 +41,13 @@ public class RouteValidator {
                     + "' does not match the required pattern: " + routeNameValidationPattern);
         }
         displayFieldsValidator.validateDisplayName(route.getDisplayName(), "Route", routeName);
+        upstreamValidator.validateForRoutes(route.getUpstreams(), routeName);
     }
 
     public void validateUpdate(String routeName, Route route) {
         deploymentValidator.validateUpdate(routeName, route.getDeployment(), "Route");
         displayFieldsValidator.validateDisplayName(route.getDisplayName(), "Route", routeName);
+        upstreamValidator.validateForRoutes(route.getUpstreams(), routeName);
     }
 
     public void validateDependentRoute(DependentRoute dependentRoute) {
@@ -59,5 +64,4 @@ public class RouteValidator {
             throw new IllegalArgumentException(MUST_CONFORM_ERROR_MESSAGE.formatted(routeName, "upstreams"));
         }
     }
-
 }
