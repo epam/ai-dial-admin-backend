@@ -89,7 +89,8 @@
         "extraData": "metadata-2",
         "secretExtraData": "secret_value2",
         "weight": 20,
-        "tier": 2
+        "tier": 2,
+        "authType": "bearer"
       }
     ],
     "overrideName": "Custom Model Override",

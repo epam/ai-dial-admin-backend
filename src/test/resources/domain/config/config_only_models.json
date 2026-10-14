@@ -114,7 +114,8 @@
           "extraData": "metadata-1",
           "secretExtraData": "secret_value1",
           "weight": 10,
-          "tier": 1
+          "tier": 1,
+          "authType": "api_key"
         },
         {
           "id": "11",
@@ -123,7 +124,8 @@
           "extraData": "metadata-2",
           "secretExtraData": "secret_value2",
           "weight": 20,
-          "tier": 2
+          "tier": 2,
+          "authType": "bearer"
         }
       ],
       "overrideName": "Custom Model Override",

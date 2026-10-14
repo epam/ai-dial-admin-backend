@@ -14,10 +14,12 @@
   "upstreams": [
     {
       "endpoint": "https://upstream1.endpoint.test.com/embeddings",
-      "key": "test key"
+      "key": "test key",
+      "authType": "api_key"
     },
     {
-      "endpoint": "https://upstream2.endpoint.test.com/embeddings"
+      "endpoint": "https://upstream2.endpoint.test.com/embeddings",
+      "authType": "bearer"
     }
   ],
   "name": "test_model",
