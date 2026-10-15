@@ -567,7 +567,7 @@ class VersionAwareFieldFilterTest {
 
         // then
         JsonNode overridePaths = result.get("models").get("m1").get("interfaces")
-                .get("openaiResponses").get("override_paths");
+                .get("openaiResponses").get("overridePaths");
         assertThat(overridePaths.get("createResponse").asText()).isEqualTo("/v1/{overrideName}/responses");
         assertThat(overridePaths.get("getResponse").asText()).isEqualTo("/v1/{overrideName}/responses/{id}");
     }
@@ -631,7 +631,7 @@ class VersionAwareFieldFilterTest {
         // then the interface itself survives - only the unsupported overridePaths field is stripped
         JsonNode deploymentInterface = result.get("models").get("m1").get("interfaces").get("openaiChatCompletions");
         assertThat(deploymentInterface.get("base_url").asText()).isEqualTo("http://model.adapter");
-        assertThat(deploymentInterface.has("override_paths")).isFalse();
+        assertThat(deploymentInterface.has("overridePaths")).isFalse();
     }
 
     @ParameterizedTest
