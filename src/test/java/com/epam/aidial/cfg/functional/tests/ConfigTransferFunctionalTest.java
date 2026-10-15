@@ -3191,7 +3191,7 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(exportedInterfaces.get("openaiChatCompletions").getOverridePaths()).isEmpty();
         Assertions.assertThat(exportedInterfaces.get("openaiResponses").getOverridePaths())
                 .containsExactlyInAnyOrderEntriesOf(overridePaths);
-        Assertions.assertThat(exportedJson.replaceAll("\\s", "")).contains("\"override_paths\"");
+        Assertions.assertThat(exportedJson.replaceAll("\\s", "")).contains("\"overridePaths\"");
 
         modelFacade.deleteModel("model1");
         MockMultipartFile mockFile = new MockMultipartFile(
