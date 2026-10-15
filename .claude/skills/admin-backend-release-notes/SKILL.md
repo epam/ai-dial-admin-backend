@@ -38,7 +38,11 @@ Do **not** trigger on requests like "what changed in 0.7.0?" — that is a recal
 3. `gh release view <prev-stable-tag> --json body` and `gh release view <prev-rc-tag> --json body` (when relevant) — these are the style anchors. The user has repeatedly insisted **"keep the same format as the latest stable release"** and **"your notes are too verbose"** — match the terseness of those notes, not your own instincts. One line per bullet.
 4. `git tag --list | sort -V` + `git log <prev-tag>..<tag> --oneline` — full commit list for the range, so you can spot hotfix commits the CI dropped because they had no PR.
 5. **Identify intermediate hotfix releases.** From the tag list, find any patch/hotfix releases that were published between `<prev-stable>` and the current tag (e.g. `0.16.1` between `0.16.0` and `0.17.0-rc.0`). For each such hotfix tag, collect its PR numbers via `gh release view <hotfix-tag> --json body` — these are changes that consumers already received. Record this set; it is used in Step 4 to drop re-appearing entries.
-6. Construct the advisory header URLs — always use `blob/<tag>/docs/...` (not branch-based). For the upgrade-plan path, strip any `-rc.N` suffix to get the base version: `0.17.0-rc.0` → `docs/upgrade-plans/0.17.0.md`.
+6. **Decide which advisory headers apply.** Neither header is required in every release; each depends on an actual infrastructure change documented in the corresponding doc:
+   - **UPGRADE TO NEW RELEASE** — include only when the upgrade plan exists at the tag. Strip any `-rc.N` suffix to get the base version (`0.17.0-rc.0` → `docs/upgrade-plans/0.17.0.md`) and check with `git show <tag>:docs/upgrade-plans/<version>.md`. No file → omit the header (the link would 404).
+   - **INFRASTRUCTURE CHANGELOG** — include only when `git diff <prev-tag>..<tag> -- docs/INFRA-CHANGELOG.md` is non-empty.
+
+   When a header applies, build its URL with `blob/<tag>/docs/...` (not branch-based). Record each include/omit decision and its reason in the editorial-notes file.
 
 ### 2. Pull source context for each bullet
 
@@ -91,6 +95,7 @@ The raw notes' `## Features` / `## Fixes` / `## Other` partition is unreliable b
 - `Merge remote-tracking branch …` commits.
 - Pure Claude Code / skill scaffolding entries (`init claude documentation`, `add design review skill`).
 - **PRs already shipped in an intermediate hotfix release** (identified in Step 1.5). Even though their commits may not be ancestors of the hotfix tag in the Git graph (causing CI to surface them again), they are not new to consumers. Drop them and note each one in the editorial-notes file with reason "already released in `<hotfix-tag>`".
+- **Release-branch merge PRs that duplicate a listed PR.** These show up as a second bullet whose title carries two PR numbers, e.g. `* add auth type to upsreams (#1184) (#1186)`. Confirm with `gh pr view <PR> --json baseRefName,body` that the PR targets a `release-X.Y` branch and has an empty or template-only body, and that its diff matches the original PR. If so, drop the bullet and cite only the original PR in the kept bullet. Do not add the merge PR to the original bullet's PR list. Note each one in the editorial-notes file with reason "release-branch merge of #`<original>`".
 
 **Keep in `Other`** — the actual polished releases retain all of these:
 
@@ -213,7 +218,7 @@ This skill **never** runs `gh release edit`, `gh release create`, or any write o
 
 ## Output format
 
-The file saved to `claude/release-notes/<tag>-draft.md` follows this shape exactly:
+The file saved to `claude/release-notes/<tag>-draft.md` follows this shape, with every section optional (see the omission rules below the template):
 
 ```markdown
 UPGRADE TO NEW RELEASE
@@ -255,6 +260,8 @@ Other
 
 Section order: UPGRADE TO NEW RELEASE → INFRASTRUCTURE CHANGELOG → BREAKING CHANGES (configuration) → BREAKING CHANGES (API) → Features → Fixes → Other.
 
+Omit UPGRADE TO NEW RELEASE unless `docs/upgrade-plans/<version>.md` exists at the tag, and omit INFRASTRUCTURE CHANGELOG unless `docs/INFRA-CHANGELOG.md` changed in the range (see Step 1.6).
+
 Omit BREAKING CHANGES (configuration) and BREAKING CHANGES (API) entirely when they have no entries.
 
 A delta `rc` release uses the same shape — no preamble paragraph, no header pointing at the previous rc.
@@ -277,7 +284,7 @@ Example:
 
 - **Never edit GitHub.** No `gh release edit`, no `gh release create`. Drafts only.
 - **Never invent items.** Every kept bullet maps to a PR or a commit hash in the range.
-- **Never silently rename or drop a PR reference.** Each bullet carries `[#ISSUE](url)` at the start and `([#PR](url))` at the end so links resolve on the release page.
+- **Never silently rename or drop a PR reference.** Each bullet carries `[#ISSUE](url)` at the start and `([#PR](url))` at the end so links resolve on the release page. The only PR references you may drop are the ones listed under "Drop these from the notes entirely" in Step 4, and each drop must be recorded in the editorial-notes file.
 - **Source code wins over PR descriptions.** If the PR body uses a different name than what's in the code, use the code name and note the discrepancy in the editorial-notes file.
 - **Don't consolidate pre-release notes** into the stable's notes unless the user explicitly asks — each rc tag has its own page.
 - **Match the terseness of the predecessor's notes.** If they're one-liners, your bullets are one-liners. Defer to the established style.
