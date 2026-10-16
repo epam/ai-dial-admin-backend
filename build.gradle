@@ -11,6 +11,22 @@ buildscript {
             classpath ('com.fasterxml.jackson.core:jackson-core:2.22.3') {
                 because("previous versions have vulnerabilities")
             }
+            // spring-boot-gradle-plugin 4.x uses Jackson 3
+            classpath ('tools.jackson.core:jackson-databind:3.1.7') {
+                because("previous versions have vulnerabilities")
+            }
+            classpath ('tools.jackson.core:jackson-core:3.1.7') {
+                because("previous versions have vulnerabilities")
+            }
+            classpath ('org.apache.httpcomponents.client5:httpclient5:5.6.3') {
+                because("previous versions have vulnerabilities")
+            }
+            classpath ('org.apache.httpcomponents.core5:httpcore5:5.4.3') {
+                because("previous versions have vulnerabilities")
+            }
+            classpath ('org.apache.httpcomponents.core5:httpcore5-h2:5.4.3') {
+                because("previous versions have vulnerabilities")
+            }
         }
     }
 }
@@ -197,6 +213,15 @@ dependencies {
             because("previous versions have vulnerabilities")
         }
         checkstyle ('org.codehaus.plexus:plexus-utils:4.0.3') {
+            because("previous versions have vulnerabilities")
+        }
+        checkstyle ('org.apache.httpcomponents.client5:httpclient5:5.6.3') {
+            because("previous versions have vulnerabilities")
+        }
+        checkstyle ('org.apache.httpcomponents.core5:httpcore5:5.4.3') {
+            because("previous versions have vulnerabilities")
+        }
+        checkstyle ('org.apache.httpcomponents.core5:httpcore5-h2:5.4.3') {
             because("previous versions have vulnerabilities")
         }
     }
