@@ -1,14 +1,15 @@
 package com.epam.aidial.cfg.service.hashing;
 
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.StreamWriteFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.ser.std.SimpleBeanPropertyFilter;
+import tools.jackson.databind.ser.std.SimpleFilterProvider;
 
 import java.security.MessageDigest;
 import java.util.Base64;
@@ -23,18 +24,19 @@ public class HashCalculator {
     private final ObjectWriter writer;
     private final Base64.Encoder base64Encoder;
 
-    public HashCalculator(ObjectMapper mapper) {
-        var hashingMapper = mapper.copy()
-                .registerModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-                .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
-                .enable(SerializationFeature.WRITE_BIGDECIMAL_AS_PLAIN)
-                .addMixIn(Object.class, HashFilterMixin.class);
+    public HashCalculator(JsonMapper mapper) {
         var filters = new SimpleFilterProvider()
                 .addFilter("hashFilter", SimpleBeanPropertyFilter.serializeAllExcept(IGNORED_FIELDS))
                 .setFailOnUnknownId(false);
-        hashingMapper.setFilterProvider(filters);
+        var hashingMapper = mapper.rebuild()
+                .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+                .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+                .enable(StreamWriteFeature.WRITE_BIGDECIMAL_AS_PLAIN)
+                .addMixIn(Object.class, HashFilterMixin.class)
+                .filterProvider(filters)
+                .build();
         this.writer = hashingMapper.writer();
         this.base64Encoder = Base64.getUrlEncoder().withoutPadding();
     }

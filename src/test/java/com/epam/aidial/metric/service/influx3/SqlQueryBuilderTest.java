@@ -21,10 +21,10 @@ import com.epam.aidial.ql.model.filters.impl.BinaryComparisonFilterImpl;
 import com.epam.aidial.ql.model.impl.QueryImpl;
 import com.epam.aidial.ql.model.impl.SortImpl;
 import com.epam.aidial.ql.model.impl.TableImpl;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ class SqlQueryBuilderTest {
     private SqlQueryBuilder sqlQueryBuilder;
 
     @BeforeEach
-    void setUp() throws JsonProcessingException {
+    void setUp() throws JacksonException {
         var testMetricConfig = ResourceUtils.readResource("/metrics/metric.config.influx3.json");
         var datasetDeclaration = (Influx3DatasetDeclaration) OBJECT_MAPPER.readValue(testMetricConfig, DatasetDeclaration.class);
 

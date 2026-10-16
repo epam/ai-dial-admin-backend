@@ -7,7 +7,6 @@ import com.epam.aidial.metric.model.configuration.influx3.Influx3DatasetDeclarat
 import com.epam.aidial.metric.service.AbstractInfluxContainerTest;
 import com.epam.aidial.metric.service.WindowGapFiller;
 import com.epam.aidial.ql.Engine;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.influxdb.v3.client.InfluxDBClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,6 +16,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.databind.ObjectMapper;
 
 @Testcontainers
 class Influx3ContainerTest extends AbstractInfluxContainerTest {

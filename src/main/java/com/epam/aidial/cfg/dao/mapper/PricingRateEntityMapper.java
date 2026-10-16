@@ -1,10 +1,10 @@
 package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.domain.model.PricingRate;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.mapstruct.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.ObjectMapper;
 
 @Mapper(componentModel = "spring")
 public class PricingRateEntityMapper {

@@ -1,29 +1,27 @@
 package com.epam.aidial.cfg.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import feign.codec.Decoder;
-import feign.optionals.OptionalDecoder;
-import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
-import org.springframework.cloud.openfeign.support.ResponseEntityDecoder;
-import org.springframework.cloud.openfeign.support.SpringDecoder;
+import org.springframework.cloud.openfeign.support.HttpMessageConverterCustomizer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 
 public class MessageConversionCoreClientConfiguration {
+
+    /**
+     * Replaces the default converters of the Feign decoder with a single Jackson converter that accepts any media type.
+     */
     @Bean
-    @Primary
-    public Decoder feignDecoder(ObjectMapper objectMapper) {
+    public HttpMessageConverterCustomizer feignMessageConverterCustomizer(JsonMapper jsonMapper) {
+        return converters -> {
+            JacksonJsonHttpMessageConverter jackson = new JacksonJsonHttpMessageConverter(jsonMapper);
+            jackson.setSupportedMediaTypes(List.of(MediaType.ALL));
 
-        MappingJackson2HttpMessageConverter jackson = new MappingJackson2HttpMessageConverter(objectMapper);
-        jackson.setSupportedMediaTypes(List.of(MediaType.ALL));
-
-        HttpMessageConverters converters = new HttpMessageConverters(jackson);
-
-        return new OptionalDecoder(new ResponseEntityDecoder(new SpringDecoder(() -> converters)));
+            converters.clear();
+            converters.add(jackson);
+        };
     }
 
 }

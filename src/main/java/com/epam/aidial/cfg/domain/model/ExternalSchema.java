@@ -1,8 +1,8 @@
 package com.epam.aidial.cfg.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
+import tools.jackson.databind.JsonNode;
 
 import java.util.List;
 import java.util.Map;

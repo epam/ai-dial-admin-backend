@@ -4,11 +4,12 @@ import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.core.config.CoreApplication;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,7 +42,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
         application.setApplicationTypeSchemaId(null);
 
         // when
-        Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         // then
         assertThat(actualValidationMessages).isEmpty();
@@ -55,7 +56,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
         application.setApplicationProperties(null);
 
         // when
-        Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         // then
         assertThat(actualValidationMessages).isEmpty();
@@ -71,7 +72,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
         Set<String> expectedValidationMessages = Set.of("$: required property 'requiredProp' not found");
 
         // when
-        Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         // then
         assertValidationMessages(actualValidationMessages, expectedValidationMessages);
@@ -85,7 +86,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
         application.setApplicationProperties(Map.of("requiredProp", "some-value"));
 
         // when
-        Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         // then
         assertThat(actualValidationMessages).isEmpty();
@@ -98,7 +99,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
         application.setSource(null);
 
         // when
-        Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         // then
         assertThat(actualValidationMessages).isEmpty();
@@ -112,7 +113,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
         application.setApplicationProperties(null);
 
         // when
-        Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         // then
         assertThat(actualValidationMessages).isEmpty();
@@ -128,7 +129,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
         Set<String> expectedValidationMessages = Set.of("$: required property 'requiredProp' not found");
 
         // when
-        Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         // then
         assertValidationMessages(actualValidationMessages, expectedValidationMessages);
@@ -142,7 +143,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
         application.setApplicationProperties(Map.of("requiredProp", "some-value"));
 
         // when
-        Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         // then
         assertThat(actualValidationMessages).isEmpty();
@@ -155,7 +156,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
         application.setApplicationTypeSchemaId(null);
 
         // when
-        Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         // then
         assertThat(actualValidationMessages).isEmpty();
@@ -170,7 +171,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
         Set<String> expectedValidationMessages = Set.of("Illegal character in path at index 7: invalid uri");
 
         // when
-        Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         // then
         assertValidationMessages(actualValidationMessages, expectedValidationMessages);
@@ -184,7 +185,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
         application.setApplicationProperties(null);
 
         // when
-        Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         // then
         assertThat(actualValidationMessages).isEmpty();
@@ -200,7 +201,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
         Set<String> expectedValidationMessages = Set.of("$: required property 'requiredProp' not found");
 
         // when
-        Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         // then
         assertValidationMessages(actualValidationMessages, expectedValidationMessages);
@@ -214,15 +215,15 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
         application.setApplicationProperties(Map.of("requiredProp", "some-value"));
 
         // when
-        Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         // then
         assertThat(actualValidationMessages).isEmpty();
     }
 
-    private void assertValidationMessages(Set<ValidationMessage> actualValidationMessages, Set<String> expectedValidationMessages) {
+    private void assertValidationMessages(List<Error> actualValidationMessages, Set<String> expectedValidationMessages) {
         Set<String> actualValidationMessageStrings = actualValidationMessages.stream()
-                .map(ValidationMessage::getMessage)
+                .map(ValidationErrors::format)
                 .collect(Collectors.toSet());
         assertThat(actualValidationMessageStrings).containsExactlyInAnyOrderElementsOf(expectedValidationMessages);
     }

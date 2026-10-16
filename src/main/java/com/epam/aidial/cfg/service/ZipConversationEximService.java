@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.service;
 
+import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ConversationEximDto;
 import com.epam.aidial.cfg.dto.ConversationsEximDto;
@@ -13,14 +14,14 @@ import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
 import com.epam.aidial.cfg.security.AuthorizationTokenWrapper;
 import com.epam.aidial.cfg.utils.EximServiceHelper;
 import com.epam.aidial.cfg.utils.PathUtils;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import tools.jackson.core.StreamReadFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -49,8 +50,8 @@ public class ZipConversationEximService {
 
     private final ResourceImportValidator uniquenessValidator;
 
-    private final JsonMapper jsonMapper = JsonMapper.builder()
-            .configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false)
+    private final JsonMapper jsonMapper = JsonMapperConfiguration.withLegacyCompatibility(JsonMapper.builder())
+            .disable(StreamReadFeature.AUTO_CLOSE_SOURCE)
             .build();
 
     private final ConversationEximService conversationEximService;

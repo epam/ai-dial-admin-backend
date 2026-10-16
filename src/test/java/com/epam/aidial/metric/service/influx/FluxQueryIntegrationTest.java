@@ -19,10 +19,10 @@ import com.epam.aidial.ql.dto.StringExpressionDto;
 import com.epam.aidial.ql.dto.TableDto;
 import com.epam.aidial.ql.dto.filters.AndDto;
 import com.epam.aidial.ql.dto.filters.BinaryComparisonFilterDto;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,7 @@ class FluxQueryIntegrationTest {
     private FluxQueryBuilderFactory fluxQueryBuilderFactory;
 
     @BeforeEach
-    void setUp() throws JsonProcessingException {
+    void setUp() throws JacksonException {
         var testMetricConfig = ResourceUtils.readResource("/metrics/metric.config.influx2.json");
         var datasetDeclaration = (InfluxDatasetDeclaration) OBJECT_MAPPER.readValue(testMetricConfig, DatasetDeclaration.class);
 

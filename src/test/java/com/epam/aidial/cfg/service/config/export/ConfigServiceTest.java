@@ -34,9 +34,6 @@ import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.utils.ResourceUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,6 +42,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -122,7 +122,7 @@ class ConfigServiceTest {
     }
 
     @Test
-    void getConfig_OnlyApplications() throws JsonProcessingException {
+    void getConfig_OnlyApplications() throws JacksonException {
         var rawApplications = ResourceUtils.readResource("/domain/model/applications.json");
         var applications = objectMapper.readValue(rawApplications, new TypeReference<List<Application>>() {
         });
@@ -137,7 +137,7 @@ class ConfigServiceTest {
     }
 
     @Test
-    void getConfig_OnlyApplicationTypeSchemas() throws JsonProcessingException {
+    void getConfig_OnlyApplicationTypeSchemas() throws JacksonException {
         var rawSchemas = ResourceUtils.readResource("/domain/model/applicationTypeSchemas.json");
         var schemas = objectMapper.readValue(rawSchemas, new TypeReference<List<ApplicationTypeSchema>>() {
         });
@@ -151,7 +151,7 @@ class ConfigServiceTest {
     }
 
     @Test
-    void getConfig_OnlyToolSets() throws JsonProcessingException {
+    void getConfig_OnlyToolSets() throws JacksonException {
         var rawToolSets = ResourceUtils.readResource("/domain/model/toolsets.json");
         var toolSets = objectMapper.readValue(rawToolSets, new TypeReference<List<ToolSet>>() {
         });
@@ -165,7 +165,7 @@ class ConfigServiceTest {
     }
 
     @Test
-    void getConfig_OnlyInterceptors() throws JsonProcessingException {
+    void getConfig_OnlyInterceptors() throws JacksonException {
         var rawInterceptors = ResourceUtils.readResource("/domain/model/interceptors.json");
         var interceptors = objectMapper.readValue(rawInterceptors, new TypeReference<List<Interceptor>>() {
         });
@@ -179,7 +179,7 @@ class ConfigServiceTest {
     }
 
     @Test
-    void getConfig_OnlyKeys() throws JsonProcessingException {
+    void getConfig_OnlyKeys() throws JacksonException {
         var rawKeys = ResourceUtils.readResource("/domain/model/keys.json");
         var keys = objectMapper.readValue(rawKeys, new TypeReference<List<Key>>() {
         });
@@ -193,7 +193,7 @@ class ConfigServiceTest {
     }
 
     @Test
-    void getConfig_OnlyModels() throws JsonProcessingException {
+    void getConfig_OnlyModels() throws JacksonException {
         var rawModels = ResourceUtils.readResource("/domain/model/models.json");
         var models = objectMapper.readValue(rawModels, new TypeReference<List<Model>>() {
         });
@@ -207,7 +207,7 @@ class ConfigServiceTest {
     }
 
     @Test
-    void getConfig_OnlyModels_PublicModel() throws JsonProcessingException {
+    void getConfig_OnlyModels_PublicModel() throws JacksonException {
         var rawModels = ResourceUtils.readResource("/domain/model/models_public.json");
         var models = objectMapper.readValue(rawModels, new TypeReference<List<Model>>() {
         });
@@ -221,7 +221,7 @@ class ConfigServiceTest {
     }
 
     @Test
-    void getConfig_OnlyRoles() throws JsonProcessingException {
+    void getConfig_OnlyRoles() throws JacksonException {
         var rawRoles = ResourceUtils.readResource("/domain/model/roles.json");
         var roles = objectMapper.readValue(rawRoles, new TypeReference<List<Role>>() {
         });
@@ -239,7 +239,7 @@ class ConfigServiceTest {
     }
 
     @Test
-    void getConfig_OnlyRoutes() throws JsonProcessingException {
+    void getConfig_OnlyRoutes() throws JacksonException {
         var rawRoutes = ResourceUtils.readResource("/domain/model/routes.json");
         var routes = objectMapper.readValue(rawRoutes, new TypeReference<List<Route>>() {
         });

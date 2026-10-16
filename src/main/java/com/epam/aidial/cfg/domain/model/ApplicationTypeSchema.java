@@ -4,9 +4,9 @@ import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.dto.databind.JsonMapDeserializer;
 import com.epam.aidial.cfg.dto.databind.JsonMapSerializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 import java.util.ArrayList;
 import java.util.List;

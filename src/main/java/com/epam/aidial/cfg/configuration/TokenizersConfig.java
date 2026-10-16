@@ -2,8 +2,6 @@ package com.epam.aidial.cfg.configuration;
 
 import com.epam.aidial.cfg.dto.TokenizerDto;
 import com.epam.aidial.cfg.service.TokenizerService;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ValidationException;
 import lombok.SneakyThrows;
@@ -14,6 +12,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,7 @@ public class TokenizersConfig {
         List<TokenizerDto> tokenizers = new ArrayList<>();
 
         if (StringUtils.isNotBlank(tokenizersJson)) {
-            List<TokenizerDto> tokenizerFromJson = new ObjectMapper().readValue(tokenizersJson, new TypeReference<List<TokenizerDto>>() {
+            List<TokenizerDto> tokenizerFromJson = JsonMapper.builder().build().readValue(tokenizersJson, new TypeReference<List<TokenizerDto>>() {
             });
             tokenizers.addAll(tokenizerFromJson);
         }

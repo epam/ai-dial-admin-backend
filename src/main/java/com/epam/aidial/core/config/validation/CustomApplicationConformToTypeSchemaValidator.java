@@ -4,20 +4,21 @@ import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.core.config.CoreApplication;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaLocation;
+import com.networknt.schema.SchemaRegistry;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class CustomApplicationConformToTypeSchemaValidator {
 
-    public static Set<ValidationMessage> validate(CoreApplication application,
-                                                  CustomApplicationConformToTypeSchemaValidationContext validationContext) {
+    public static List<Error> validate(CoreApplication application,
+                                       CustomApplicationConformToTypeSchemaValidationContext validationContext) {
         return validateApplicationProperties(
                 application.getApplicationProperties(),
                 application.getApplicationTypeSchemaId(),
@@ -25,8 +26,8 @@ public class CustomApplicationConformToTypeSchemaValidator {
         );
     }
 
-    public static Set<ValidationMessage> validate(Application application,
-                                                  CustomApplicationConformToTypeSchemaValidationContext validationContext) {
+    public static List<Error> validate(Application application,
+                                       CustomApplicationConformToTypeSchemaValidationContext validationContext) {
         URI schemaId = application.getSource() instanceof ApplicationSchemaSource schemaSource
                 ? schemaSource.getApplicationTypeSchemaId() : null;
         return validateApplicationProperties(
@@ -36,19 +37,19 @@ public class CustomApplicationConformToTypeSchemaValidator {
         );
     }
 
-    public static Set<ValidationMessage> validate(ApplicationResourceDto application,
-                                                  CustomApplicationConformToTypeSchemaValidationContext validationContext) {
+    public static List<Error> validate(ApplicationResourceDto application,
+                                       CustomApplicationConformToTypeSchemaValidationContext validationContext) {
         String schemaIdAsString = application.getApplicationTypeSchemaId();
         if (schemaIdAsString == null) {
-            return Set.of();
+            return List.of();
         }
 
         URI schemaId;
         try {
             schemaId = URI.create(schemaIdAsString);
         } catch (Exception e) {
-            ValidationMessage validationMessage = ValidationMessage.builder().message(e.getMessage()).build();
-            return Set.of(validationMessage);
+            Error error = Error.builder().message(e.getMessage()).build();
+            return List.of(error);
         }
 
         return validateApplicationProperties(
@@ -58,22 +59,22 @@ public class CustomApplicationConformToTypeSchemaValidator {
         );
     }
 
-    private static Set<ValidationMessage> validateApplicationProperties(Map<String, Object> applicationProperties,
-                                                                        URI schemaId,
-                                                                        CustomApplicationConformToTypeSchemaValidationContext validationContext) {
+    private static List<Error> validateApplicationProperties(Map<String, Object> applicationProperties,
+                                                             URI schemaId,
+                                                             CustomApplicationConformToTypeSchemaValidationContext validationContext) {
         if (schemaId == null) {
-            return Set.of();
+            return List.of();
         }
 
         if (applicationProperties == null) {
-            return Set.of();
+            return List.of();
         }
 
-        JsonSchemaFactory schemaFactory = validationContext.getSchemaFactory();
+        SchemaRegistry schemaRegistry = validationContext.getSchemaRegistry();
         ObjectMapper mapper = validationContext.getMapper();
 
         JsonNode applicationNode = mapper.valueToTree(applicationProperties);
-        JsonSchema schema = schemaFactory.getSchema(schemaId);
+        Schema schema = schemaRegistry.getSchema(SchemaLocation.of(schemaId.toString()));
 
         return schema.validate(applicationNode);
     }

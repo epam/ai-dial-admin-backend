@@ -1,5 +1,5 @@
 # Build stage
-FROM gradle:8.10.1-jdk17-focal AS builder
+FROM gradle:8.14.6-jdk17-noble AS builder
 WORKDIR /build-workspace
 
 COPY build.gradle .

@@ -4,13 +4,13 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.SchemaValidationException;
 import com.epam.aidial.cfg.service.config.transfer.version.CoreConfigVersionService;
 import com.epam.aidial.core.config.Config;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -82,7 +82,7 @@ public class VersionAwareFieldFilter {
                 continue;
             }
 
-            Iterator<Map.Entry<String, JsonNode>> entities = originalEntities.fields();
+            Iterator<Map.Entry<String, JsonNode>> entities = originalEntities.properties().iterator();
             while (entities.hasNext()) {
                 Map.Entry<String, JsonNode> entity = entities.next();
                 String name = entity.getKey();
@@ -135,7 +135,7 @@ public class VersionAwareFieldFilter {
                 continue;
             }
 
-            Iterator<Map.Entry<String, JsonNode>> entities = originalEntities.fields();
+            Iterator<Map.Entry<String, JsonNode>> entities = originalEntities.properties().iterator();
             while (entities.hasNext()) {
                 Map.Entry<String, JsonNode> entity = entities.next();
                 String name = entity.getKey();
@@ -181,7 +181,7 @@ public class VersionAwareFieldFilter {
             return false;
         }
         if (field.isTextual()) {
-            return !field.asText().isBlank();
+            return !field.asString().isBlank();
         }
         return !field.isEmpty() || field.isValueNode();
     }
@@ -307,7 +307,7 @@ public class VersionAwareFieldFilter {
             return;
         }
 
-        String ref = schema.get("$ref").asText();
+        String ref = schema.get("$ref").asString();
         if (ref.startsWith("#/definitions/")) {
             String definitionName = ref.substring("#/definitions/".length());
             JsonNode rootSchema = findRootSchema(schema);
@@ -328,7 +328,7 @@ public class VersionAwareFieldFilter {
             // Create a map of camelCase and snake_case field names to their schema definitions
             Map<String, JsonNode> fieldSchemaMap = new HashMap<>();
 
-            Iterator<Map.Entry<String, JsonNode>> schemaFields = properties.fields();
+            Iterator<Map.Entry<String, JsonNode>> schemaFields = properties.properties().iterator();
             while (schemaFields.hasNext()) {
                 Map.Entry<String, JsonNode> entry = schemaFields.next();
                 String schemaFieldName = entry.getKey();
@@ -342,7 +342,7 @@ public class VersionAwareFieldFilter {
             }
 
             // Process node fields
-            Iterator<Map.Entry<String, JsonNode>> nodeFields = node.fields();
+            Iterator<Map.Entry<String, JsonNode>> nodeFields = node.properties().iterator();
             while (nodeFields.hasNext()) {
                 Map.Entry<String, JsonNode> nodeField = nodeFields.next();
                 String fieldName = nodeField.getKey();
@@ -403,7 +403,7 @@ public class VersionAwareFieldFilter {
                 return;
             }
             ObjectNode fieldValueWrappedAsMap = objectMapper.createObjectNode();
-            appTypeSchemaId = unwrappedFieldValue.get("$id").asText();
+            appTypeSchemaId = unwrappedFieldValue.get("$id").asString();
             fieldValueWrappedAsMap.set(appTypeSchemaId, unwrappedFieldValue);
             fieldValue = fieldValueWrappedAsMap;
         }
@@ -459,7 +459,7 @@ public class VersionAwareFieldFilter {
         }
 
         if (fieldValue.size() >= 1) {
-            Iterator<JsonNode> nodeElements = fieldValue.elements();
+            Iterator<JsonNode> nodeElements = fieldValue.values().iterator();
             while (nodeElements.hasNext()) {
                 processField(fieldName, nodeElements.next(), fieldSchema, parentSchema, filteredNode);
             }
@@ -473,7 +473,7 @@ public class VersionAwareFieldFilter {
      */
     private void processFieldReference(String fieldName, JsonNode fieldValue, JsonNode fieldSchema,
                                        JsonNode parentSchema, ObjectNode filteredNode) {
-        String ref = fieldSchema.get("$ref").asText();
+        String ref = fieldSchema.get("$ref").asString();
         if (!ref.startsWith("#/definitions/")) {
             filteredNode.set(fieldName, fieldValue);
             return;
@@ -497,7 +497,7 @@ public class VersionAwareFieldFilter {
             return;
         }
 
-        Iterator<Map.Entry<String, JsonNode>> fields = source.fields();
+        Iterator<Map.Entry<String, JsonNode>> fields = source.properties().iterator();
         while (fields.hasNext()) {
             Map.Entry<String, JsonNode> field = fields.next();
             target.set(field.getKey(), field.getValue());
@@ -521,13 +521,13 @@ public class VersionAwareFieldFilter {
         }
 
         // Get the schema for the pattern (usually there's only one pattern)
-        JsonNode itemSchema = patternProperties.elements().next();
+        JsonNode itemSchema = patternProperties.values().iterator().next();
 
         // Resolve reference if needed
         itemSchema = resolveSchemaReference(itemSchema, schema);
 
         // Process each field in the node according to the item schema
-        Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
+        Iterator<Map.Entry<String, JsonNode>> fields = node.properties().iterator();
         while (fields.hasNext()) {
             Map.Entry<String, JsonNode> field = fields.next();
             String key = field.getKey();
@@ -573,7 +573,7 @@ public class VersionAwareFieldFilter {
      */
     private JsonNode resolveSchemaReference(JsonNode schema, JsonNode parentSchema) {
         if (schema.has("$ref")) {
-            String ref = schema.get("$ref").asText();
+            String ref = schema.get("$ref").asString();
             if (ref.startsWith("#/definitions/")) {
                 String definitionName = ref.substring("#/definitions/".length());
                 JsonNode rootSchema = findRootSchema(parentSchema);

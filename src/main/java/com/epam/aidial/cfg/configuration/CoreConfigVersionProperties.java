@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.configuration;
 
 import com.epam.aidial.cfg.exception.InvalidVersionException;
 import com.epam.aidial.cfg.utils.CoreConfigVersionNormalizer;
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -10,7 +11,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.regex.Pattern;
-import javax.annotation.PostConstruct;
 
 @Slf4j
 @Data

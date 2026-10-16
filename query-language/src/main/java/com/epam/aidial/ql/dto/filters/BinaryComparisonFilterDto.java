@@ -1,9 +1,9 @@
 package com.epam.aidial.ql.dto.filters;
 
-import com.epam.aidial.ql.common.model.filters.BinaryComparisonFilter;
-import com.epam.aidial.ql.dto.FilterDto;
-import com.epam.aidial.ql.dto.ExpressionDto;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
+import com.epam.aidial.ql.common.model.filters.BinaryComparisonFilter;
+import com.epam.aidial.ql.dto.ExpressionDto;
+import com.epam.aidial.ql.dto.FilterDto;
 
 public class BinaryComparisonFilterDto implements FilterDto, BinaryComparisonFilter<ExpressionDto> {
     private ExpressionDto left;

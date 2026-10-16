@@ -19,7 +19,11 @@ plugins {
     id "java"
     id 'checkstyle'
     id 'io.freefair.lombok' version '8.0.1'
-    id 'org.springframework.boot' version '3.5.15'
+    id 'org.springframework.boot' version '4.0.8'
+}
+
+lombok {
+    version = "1.18.46"
 }
 
 group = 'com.epam.aidial'
@@ -48,9 +52,7 @@ configurations {
         extendsFrom annotationProcessor
     }
 
-    // https://stackoverflow.com/questions/39615376/apache-jclouds-java-lang-nosuchmethoderror-when-using-rackspace-in-a-spring-boot
     configureEach {
-        exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: "org.springframework.boot", module: "spring-boot-starter-logging"
         resolutionStrategy {
             force 'com.google.code.gson:gson:2.8.9'
@@ -83,44 +85,42 @@ dependencies {
     implementation 'com.azure:azure-identity:1.15.3'
     implementation 'com.azure:azure-identity-extensions:1.2.7'
     implementation 'com.azure:azure-security-keyvault-secrets:4.8.3'
-    implementation 'org.springframework.vault:spring-vault-core:3.1.2'
+    implementation 'org.springframework.vault:spring-vault-core:4.0.3'
     implementation 'software.amazon.awssdk:secretsmanager:2.30.27'
     implementation 'com.google.cloud:google-cloud-secretmanager:2.59.0'
     implementation 'com.google.cloud.sql:postgres-socket-factory:1.28.0'
     implementation 'com.google.guava:guava:33.4.8-jre'
     implementation("org.jsoup:jsoup:1.23.2")
-    implementation 'io.modelcontextprotocol.sdk:mcp:0.11.3'
+    implementation 'io.modelcontextprotocol.sdk:mcp:2.1.0'
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation platform('tools.jackson:jackson-bom:3.1.7') // Spring Boot 4.0.8 manages 3.1.5, which has vulnerabilities
+    implementation 'tools.jackson.core:jackson-databind'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.3.0'
+    implementation 'org.springframework.boot:spring-boot-starter-aspectj'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:5.0.3'
     implementation 'org.springframework:spring-test'
-    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
-    implementation 'org.hibernate.validator:hibernate-validator:8.0.2.Final'
-    implementation 'org.glassfish:jakarta.el:4.0.2'
-    implementation 'com.networknt:json-schema-validator:1.5.2' //TODO: will become transitive dependency of core.config lib
-    implementation 'org.apache.commons:commons-lang3:3.18.0'
+    implementation 'com.networknt:json-schema-validator:3.0.6' //TODO: will become transitive dependency of core.config lib
+    implementation 'org.apache.commons:commons-lang3'
     implementation 'org.apache.commons:commons-collections4:4.5.0-M3'
     implementation 'commons-validator:commons-validator:1.9.0'
     implementation 'commons-io:commons-io:2.18.0'
     implementation 'com.github.f4b6a3:uuid-creator:5.0.0'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.1'
 
     implementation 'org.mapstruct:mapstruct:1.6.0'
     implementation 'info.picocli:picocli-spring-boot-starter:4.7.6'
 
     implementation 'com.h2database:h2'
-    implementation 'org.postgresql:postgresql:42.7.12'
-    implementation 'com.microsoft.sqlserver:mssql-jdbc:12.10.2.jre11'
+    implementation 'org.postgresql:postgresql'
+    implementation 'com.microsoft.sqlserver:mssql-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.data:spring-data-envers'
-    implementation 'org.flywaydb:flyway-core:11.4.1'
-    implementation 'org.flywaydb:flyway-database-postgresql:11.4.1'
-    implementation 'org.flywaydb:flyway-sqlserver:11.4.1'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    implementation 'org.flywaydb:flyway-sqlserver'
 
     implementation 'io.fabric8:kubernetes-client:7.5.2'
 
@@ -135,7 +135,7 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
 //    implementation 'io.micrometer:micrometer-registry-otlp'
 
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
 
     implementation('org.springframework.boot:spring-boot-starter-log4j2') {
         exclude group: 'org.apache.logging.log4j'
@@ -151,45 +151,28 @@ dependencies {
 
     implementation("com.nimbusds:oauth2-oidc-sdk:11.33")
 
-    compileOnly 'org.projectlombok:lombok:1.18.34'
-    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    compileOnly 'org.projectlombok:lombok:1.18.46'
+    annotationProcessor 'org.projectlombok:lombok:1.18.46'
     annotationProcessor "org.mapstruct:mapstruct-processor:1.6.0"
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.mockito:mockito-core:5.3.1'
-    testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
-    testImplementation 'org.assertj:assertj-core:3.27.7'
-    testImplementation 'org.apache.commons:commons-lang3:3.18.0'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.apache.commons:commons-lang3'
     testImplementation 'io.jsonwebtoken:jjwt:0.9.1'
     testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:4.1.0'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:postgresql'
-    testImplementation 'org.testcontainers:mssqlserver'
-    testImplementation 'org.testcontainers:influxdb'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-postgresql'
+    testImplementation 'org.testcontainers:testcontainers-mssqlserver'
+    testImplementation 'org.testcontainers:testcontainers-influxdb'
 
     constraints {
-        implementation("io.micrometer:micrometer-core:1.15.12") {
-            because("previous versions have vulnerabilities")
-        }
-        implementation("io.micrometer:micrometer-observation:1.15.12") {
-            because("previous versions have vulnerabilities")
-        }
-        implementation("io.micrometer:micrometer-commons:1.15.12") {
-            because("previous versions have vulnerabilities")
-        }
-        implementation('org.springframework.data:spring-data-commons:3.5.12') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation('org.springframework:spring-expression:6.2.19') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation('org.springframework:spring-webmvc:6.2.19') {
-            because("previous versions have vulnerabilities")
-        }
         implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.3') {
             because("previous versions have vulnerabilities")
         }
@@ -199,31 +182,7 @@ dependencies {
         implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.25') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('commons-fileupload:commons-fileupload:1.6.0') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation('io.netty:netty-codec-http2:4.2.17.Final') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation('io.netty:netty-codec-compression:4.2.17.Final') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation ('io.netty:netty-handler:4.2.17.Final') {
-            because("previous versions have vulnerabilities")
-        }
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
-            because("previous versions have vulnerabilities")
-        }
-        implementation("io.netty:netty-codec-dns:4.1.137.Final") {
-            because("previous versions have vulnerabilities")
-        }
-        implementation("io.netty:netty-resolver-dns:4.1.137.Final") {
-            because("previous versions have vulnerabilities")
-        }
-        implementation("io.netty:netty-transport-native-epoll:4.2.17.Final") {
-            because("previous versions have vulnerabilities")
-        }
-        implementation("org.bouncycastle:bcprov-jdk18on:1.85") {
             because("previous versions have vulnerabilities")
         }
         implementation("io.vertx:vertx-core:4.5.27") {
@@ -236,9 +195,6 @@ dependencies {
             because("previous versions have vulnerabilities")
         }
         implementation("io.vertx:vertx-auth-common:4.5.27") {
-            because("previous versions have vulnerabilities")
-        }
-        testImplementation('org.apache.commons:commons-compress:1.27.1') {
             because("previous versions have vulnerabilities")
         }
         checkstyle ('org.apache.commons:commons-lang3:3.18.0') {
