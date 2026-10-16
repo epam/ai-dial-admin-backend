@@ -2,8 +2,6 @@ package com.epam.aidial.cfg.service.config.impl.storage;
 
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
@@ -12,6 +10,8 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Objects;

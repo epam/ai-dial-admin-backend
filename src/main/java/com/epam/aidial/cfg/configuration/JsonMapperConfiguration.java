@@ -15,16 +15,16 @@ import com.epam.aidial.core.config.CoreUpstreamMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.validation.ValidationModule;
 import com.epam.aidial.ql.deserializers.json.QueryLanguageModule;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.cfg.EnumFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import tools.jackson.core.StreamReadFeature;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.cfg.EnumFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Created by Aliaksei Kurnosau on 9/9/24.
@@ -55,7 +55,7 @@ public class JsonMapperConfiguration {
     }
 
     public static JsonMapper createCoreJsonMapper() {
-        return JsonMapper.builder()
+        return withLegacyCompatibility(JsonMapper.builder())
                 .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
                 .addMixIn(CoreLimit.class, CoreLimitMixinForCoreObjectMapper.class)
                 .addMixIn(CoreCostLimit.class, CoreCostLimitMixinForCoreObjectMapper.class)
@@ -66,17 +66,27 @@ public class JsonMapperConfiguration {
                 .build();
     }
 
+    /**
+     * Keeps the behavior that stored data, exported configs and Core payloads rely on, where Jackson 3 changed its defaults:
+     * properties keep their declaration order (constructor properties are not moved first) and null is accepted for primitive properties.
+     */
+    public static JsonMapper.Builder withLegacyCompatibility(JsonMapper.Builder builder) {
+        return builder
+                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
+                .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES);
+    }
+
     private static JsonMapper.Builder createDefaultJsonMapperBuilder() {
-        return JsonMapper.builder()
+        return withLegacyCompatibility(JsonMapper.builder())
                 .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
                 .enable(EnumFeature.WRITE_ENUMS_TO_LOWERCASE)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false)
-                .serializationInclusion(JsonInclude.Include.NON_NULL)
+                .disable(StreamReadFeature.AUTO_CLOSE_SOURCE)
+                .changeDefaultPropertyInclusion(inclusion -> JsonInclude.Value.construct(JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL))
                 .addModule(new QueryLanguageModule())
                 .addModule(new ValidationModule())
-                .addModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     }
 }

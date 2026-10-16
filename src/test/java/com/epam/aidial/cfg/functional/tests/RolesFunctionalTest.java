@@ -21,16 +21,16 @@ import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.core.config.CoreLimit;
 import com.epam.aidial.core.config.CoreRole;
 import com.epam.aidial.core.config.CoreShareResourceLimit;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -548,7 +548,7 @@ public abstract class RolesFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenRoleIsEqualToConfigRole() throws JsonProcessingException {
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenRoleIsEqualToConfigRole() throws JacksonException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         CostLimitDto costLimitDto = new CostLimitDto();
         costLimitDto.setWeek(BigDecimal.valueOf(10));
@@ -572,7 +572,7 @@ public abstract class RolesFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenRoleIsNotEqualToConfigRoleAndUpdatedLongAgo() throws JsonProcessingException {
+    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenRoleIsNotEqualToConfigRoleAndUpdatedLongAgo() throws JacksonException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         CostLimitDto costLimitDto = new CostLimitDto();
         costLimitDto.setWeek(BigDecimal.valueOf(15));
@@ -666,7 +666,7 @@ public abstract class RolesFunctionalTest {
         return roleDto;
     }
 
-    private JsonNode coreConfig() throws JsonProcessingException {
+    private JsonNode coreConfig() throws JacksonException {
         String config = """
                 {
                   "roles": {

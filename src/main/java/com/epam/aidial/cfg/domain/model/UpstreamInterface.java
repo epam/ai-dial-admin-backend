@@ -2,9 +2,9 @@ package com.epam.aidial.cfg.domain.model;
 
 import com.epam.aidial.core.config.databind.JsonToStringDeserializer;
 import com.epam.aidial.core.config.databind.StringToJsonSerializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Per-interface routing configuration of an {@link Upstream}. Unlike {@link DeploymentInterface}, which

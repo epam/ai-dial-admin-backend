@@ -1,8 +1,8 @@
 package com.epam.aidial.cfg.domain.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,7 +38,7 @@ public final class AuditMetaBuilder {
     public String buildAsJson() {
         try {
             return objectMapper.writeValueAsString(meta);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("Failed to serialize audit metadata", e);
         }
     }

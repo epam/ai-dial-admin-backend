@@ -1,6 +1,6 @@
 package com.epam.aidial.core.config.validation;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.module.SimpleModule;
 
 public class ValidationModule extends SimpleModule {
 

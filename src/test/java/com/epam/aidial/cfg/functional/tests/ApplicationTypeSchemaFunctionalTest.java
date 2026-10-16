@@ -21,15 +21,15 @@ import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -71,7 +71,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     private ApplicationTypeSchemaDto dto2;
 
     @BeforeEach
-    public void beforeEach() throws JsonProcessingException {
+    public void beforeEach() throws JacksonException {
         clearInvocations(externalSchemaLoader);
         var dtosJson = ResourceUtils.readResource("/application_type_schema_dto.json");
         dto = objectMapper.readValue(dtosJson, new TypeReference<>() {
@@ -211,7 +211,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyRemoveDeletedInterceptorFromTheInterceptorsList() throws JsonProcessingException {
+    public void shouldSuccessfullyRemoveDeletedInterceptorFromTheInterceptorsList() throws JacksonException {
         InterceptorDto interceptorDto1 = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto1);
 
@@ -242,7 +242,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyRemoveUpdatedInterceptorFromTheInterceptorsList() throws JsonProcessingException {
+    public void shouldSuccessfullyRemoveUpdatedInterceptorFromTheInterceptorsList() throws JacksonException {
         InterceptorDto interceptorDto1 = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto1);
 
@@ -501,7 +501,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenSchemaIsEqualToConfigSchema() throws JsonProcessingException {
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenSchemaIsEqualToConfigSchema() throws JacksonException {
         typeSchemaFacade.create(dto);
 
         JsonNode config = coreConfig();
@@ -518,7 +518,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenSchemaIsNotEqualToConfigSchemaAndUpdatedLongAgo() throws JsonProcessingException {
+    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenSchemaIsNotEqualToConfigSchemaAndUpdatedLongAgo() throws JacksonException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         dto.setTitle("Sample Schema NEW");
         typeSchemaFacade.create(dto);
@@ -585,7 +585,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
                 .hasMessage("Application type schema with schema id " + absentId + " does not exist");
     }
 
-    private JsonNode coreConfig() throws JsonProcessingException {
+    private JsonNode coreConfig() throws JacksonException {
         String config = """
                 {
                   "applicationTypeSchemas": [

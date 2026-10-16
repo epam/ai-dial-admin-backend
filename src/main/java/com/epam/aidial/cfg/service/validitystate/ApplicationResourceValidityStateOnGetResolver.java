@@ -8,12 +8,13 @@ import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.model.ValidityStateResource;
 import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidationContext;
 import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidator;
-import com.networknt.schema.ValidationMessage;
+import com.epam.aidial.core.config.validation.ValidationErrors;
+import com.networknt.schema.Error;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -46,11 +47,11 @@ public class ApplicationResourceValidityStateOnGetResolver {
         var validationContext = new CustomApplicationConformToTypeSchemaValidationContext(
                 Map.of(applicationTypeSchema.get().getSchemaId(), coreApplicationTypeSchema)
         );
-        Set<ValidationMessage> validationMessages = CustomApplicationConformToTypeSchemaValidator.validate(applicationResourceDto, validationContext);
+        List<Error> validationMessages = CustomApplicationConformToTypeSchemaValidator.validate(applicationResourceDto, validationContext);
 
         if (!validationMessages.isEmpty()) {
             String validityStateMessage = validationMessages.stream()
-                    .map(ValidationMessage::getMessage)
+                    .map(ValidationErrors::format)
                     .collect(Collectors.joining(", "));
             return ValidityStateResource.builder()
                     .message(validityStateMessage)

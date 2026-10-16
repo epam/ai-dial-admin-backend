@@ -2,11 +2,12 @@ package com.epam.aidial.cfg.service.config.impl.storage;
 
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,7 +47,7 @@ public class ConfigSourceFile implements ConfigSource {
                 log.debug("Read configuration from file: {}", file);
                 return objectMapper.readValue(file, Config.class);
 
-            } catch (IOException e) {
+            } catch (JacksonException e) {
                 throw new RuntimeException("Error reading config file: " + file, e);
             }
         }
@@ -61,7 +62,7 @@ public class ConfigSourceFile implements ConfigSource {
             JsonNode versionedConfig = versionAwareFieldFilter.filterForTargetVersion(configBody);
             createDirectoryIfNeed();
             objectMapper.writeValue(new File(outputFilePath), versionedConfig);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             log.error("Can't serialize configuration", e);
         }
     }

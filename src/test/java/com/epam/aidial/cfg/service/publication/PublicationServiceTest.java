@@ -27,9 +27,6 @@ import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.service.publication.resolver.PublicationResolver;
 import com.epam.aidial.cfg.service.publication.resolver.type.PublicationResourceTypeResolver;
 import com.epam.aidial.cfg.utils.ResourceUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +39,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -81,7 +81,7 @@ class PublicationServiceTest {
 
     @ParameterizedTest
     @EnumSource(ResourceType.class)
-    void getAllPublications_ReturnsOnlyResourceTypedPublications(ResourceType resourceType) throws JsonProcessingException {
+    void getAllPublications_ReturnsOnlyResourceTypedPublications(ResourceType resourceType) throws JacksonException {
         // given
         String requestName = switch (resourceType) {
             case PROMPT -> "prompt_pending";
@@ -112,7 +112,7 @@ class PublicationServiceTest {
     }
 
     @Test
-    void getAllPublications_ReturnsAllPublications() throws JsonProcessingException {
+    void getAllPublications_ReturnsAllPublications() throws JacksonException {
         // given
         var dtoJson = ResourceUtils.readResource("/publications/client/publications.json");
         var dto = OBJECT_MAPPER.readValue(dtoJson, new TypeReference<PublicationInfosDto>() {

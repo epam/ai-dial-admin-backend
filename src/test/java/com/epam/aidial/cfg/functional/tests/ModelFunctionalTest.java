@@ -28,14 +28,14 @@ import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.core.config.CoreModel;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.util.Collection;
 import java.util.List;
@@ -589,7 +589,7 @@ public abstract class ModelFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenModelIsEqualToConfigModel() throws JsonProcessingException {
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenModelIsEqualToConfigModel() throws JacksonException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
 
         UpstreamDto secretUpstreamDto = new UpstreamDto();
@@ -632,7 +632,7 @@ public abstract class ModelFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenModelIsNotEqualToConfigModelAndUpdatedLongAgo() throws JsonProcessingException {
+    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenModelIsNotEqualToConfigModelAndUpdatedLongAgo() throws JacksonException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         UpstreamDto secretUpstreamDto = new UpstreamDto();
         secretUpstreamDto.setEndpoint("http://localhost");
@@ -758,7 +758,7 @@ public abstract class ModelFunctionalTest {
         modelDto.setInterfaces(Map.of("openaiResponses", responsesInterface));
     }
 
-    private JsonNode coreConfig() throws JsonProcessingException {
+    private JsonNode coreConfig() throws JacksonException {
         String config = """
                 {
                   "models": {

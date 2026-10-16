@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.service.config.reload;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
 
 import java.util.concurrent.atomic.AtomicReference;
 

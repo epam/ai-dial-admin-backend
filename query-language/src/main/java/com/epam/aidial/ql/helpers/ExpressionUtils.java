@@ -1,8 +1,8 @@
 package com.epam.aidial.ql.helpers;
 
+import com.epam.aidial.expressions.Alias;
 import com.epam.aidial.expressions.Column;
 import com.epam.aidial.expressions.Expression;
-import com.epam.aidial.expressions.Alias;
 import com.epam.aidial.expressions.impl.ColumnImpl;
 
 import java.util.List;

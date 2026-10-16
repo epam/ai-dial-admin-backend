@@ -9,13 +9,13 @@ import com.epam.aidial.cfg.domain.util.AuditMetaBuilder;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.security.SecurityClaimsExtractor;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.UUID;
 

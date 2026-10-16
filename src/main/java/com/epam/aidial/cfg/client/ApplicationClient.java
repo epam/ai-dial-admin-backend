@@ -38,7 +38,7 @@ public interface ApplicationClient {
      * to facilitate the decoding of the response.
      *
      * <p>For more information, refer to the custom decoder implementation in:
-     * {@link MessageConversionCoreClientConfiguration#feignDecoder(com.fasterxml.jackson.databind.ObjectMapper)}
+     * {@link MessageConversionCoreClientConfiguration#feignMessageConverterCustomizer(tools.jackson.databind.ObjectMapper)}
      */
 
     @GetMapping(value = "/v1/applications/{path}")

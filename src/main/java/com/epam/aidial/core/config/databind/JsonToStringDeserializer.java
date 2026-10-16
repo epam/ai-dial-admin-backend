@@ -1,20 +1,19 @@
 package com.epam.aidial.core.config.databind;
 
-import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-
-public class JsonToStringDeserializer extends JsonDeserializer<String> {
+public class JsonToStringDeserializer extends ValueDeserializer<String> {
 
     @Override
-    public String deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
-        if (p.getCurrentToken() == JsonToken.VALUE_STRING) {
+    public String deserialize(JsonParser p, DeserializationContext ctx) throws JacksonException {
+        if (p.currentToken() == JsonToken.VALUE_STRING) {
             return p.getValueAsString();
         }
 
-        return p.readValueAsTree().toString();
+        return ctx.readTree(p).toString();
     }
 }

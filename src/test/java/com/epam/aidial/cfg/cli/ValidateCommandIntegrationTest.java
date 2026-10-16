@@ -4,15 +4,15 @@ import com.epam.aidial.cfg.cli.dto.ValidateResult;
 import com.epam.aidial.cfg.cli.dto.ValidationStatus;
 import com.epam.aidial.cfg.functional.config.H2FunctionalTestConfiguration;
 import com.epam.aidial.cfg.service.config.transfer.MultiFileImportStrategy;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
