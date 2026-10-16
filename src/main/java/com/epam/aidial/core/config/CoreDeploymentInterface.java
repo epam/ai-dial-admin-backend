@@ -2,8 +2,7 @@ package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -17,7 +16,6 @@ import java.util.Map;
 @Data
 @Accessors(chain = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CoreDeploymentInterface { // 0.46.0
 
     /**
@@ -25,6 +23,7 @@ public class CoreDeploymentInterface { // 0.46.0
      * Core: an interface declaring none is served by the deployment-level {@code baseUrl}, which is what
      * makes an entry that only overrides {@code features} valid.
      */
+    @JsonProperty("base_url")
     @JsonAlias({"baseUrl", "base_url"})
     private String baseUrl;
 
