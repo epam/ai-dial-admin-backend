@@ -22,10 +22,6 @@ plugins {
     id 'org.springframework.boot' version '4.0.8'
 }
 
-lombok {
-    version = "1.18.46"
-}
-
 group = 'com.epam.aidial'
 version = "0.0.0"
 
