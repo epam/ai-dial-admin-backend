@@ -1,8 +1,8 @@
 package com.epam.aidial.cfg.service.config.transfer;
 
 import com.epam.aidial.core.config.Config;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class JsonConfigMergerTest {
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final JsonMapper mapper = JsonMapper.builder().build();
     private final JsonConfigMerger merger = new JsonConfigMerger(mapper);
 
     @Test

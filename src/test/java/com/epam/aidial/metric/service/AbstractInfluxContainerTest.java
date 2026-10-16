@@ -5,9 +5,10 @@ import com.epam.aidial.ql.LanguageConverter;
 import com.epam.aidial.ql.deserializers.json.QueryLanguageModule;
 import com.epam.aidial.ql.dto.CompletableDto;
 import com.epam.aidial.ql.model.Data;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -24,13 +25,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public abstract class AbstractInfluxContainerTest {
 
-    private static final ObjectMapper QUERY_MAPPER = new ObjectMapper();
+    private static final ObjectMapper QUERY_MAPPER = JsonMapper.builder()
+            .addModule(new QueryLanguageModule())
+            .build();
     private static final Comparator<Double> DOUBLE_COMPARATOR =
             (a, b) -> Math.abs(a - b) < 0.001 ? 0 : Double.compare(a, b);
-
-    static {
-        QUERY_MAPPER.registerModule(new QueryLanguageModule());
-    }
 
     // mcp_analytics records WITHOUT project_id tag — reproduces the scenario
     // where a schema-defined column is absent from actual data.

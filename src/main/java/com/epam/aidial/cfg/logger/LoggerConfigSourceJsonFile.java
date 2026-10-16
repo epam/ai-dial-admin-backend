@@ -1,12 +1,12 @@
 package com.epam.aidial.cfg.logger;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -25,7 +25,7 @@ public class LoggerConfigSourceJsonFile implements LoggerConfigSource {
 
                 return objectMapper.readValue(file, LoggerLevelsDto.class);
 
-            } catch (IOException e) {
+            } catch (JacksonException e) {
                 throw new IllegalStateException("Error reading config file: " + loggersPath, e);
             }
         }

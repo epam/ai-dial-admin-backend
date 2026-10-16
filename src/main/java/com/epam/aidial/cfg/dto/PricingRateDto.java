@@ -2,9 +2,9 @@ package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.databind.PricingRateDtoDeserializer;
 import com.epam.aidial.cfg.dto.databind.PricingRateDtoSerializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 @Data
 @JsonDeserialize(using = PricingRateDtoDeserializer.class)

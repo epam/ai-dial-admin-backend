@@ -6,9 +6,6 @@ import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreKey;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -17,6 +14,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ class AzureKeyVaultConfigSourceTest {
     private ArgumentCaptor<KeyVaultSecret> keyVaultSecretArgumentCaptor;
     private String expirationTimeUnit = "MONTHS";
     private long expirationPeriod = 3;
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper = JsonMapper.builder().build();
     private AzureKeyVaultConfigSource source;
     @Mock
     private ConfigSplitter configSplitter;
@@ -47,7 +48,7 @@ class AzureKeyVaultConfigSourceTest {
     private VersionAwareFieldFilter versionAwareFieldFilter;
 
     @Test
-    void writeConfig_shouldWriteSecret() throws JsonProcessingException {
+    void writeConfig_shouldWriteSecret() throws JacksonException {
         source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1"),
             secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 
@@ -73,7 +74,7 @@ class AzureKeyVaultConfigSourceTest {
     }
 
     @Test
-    void writeConfig_shouldWriteWithoutSplit() throws JsonProcessingException {
+    void writeConfig_shouldWriteWithoutSplit() throws JacksonException {
         source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1", "secret2"),
             secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 
@@ -105,7 +106,7 @@ class AzureKeyVaultConfigSourceTest {
     }
 
     @Test
-    void writeConfig_shouldThrowExceptionNotEnoughSpace() throws JsonProcessingException {
+    void writeConfig_shouldThrowExceptionNotEnoughSpace() throws JacksonException {
         source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1", "secret2"),
             secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 
@@ -125,7 +126,7 @@ class AzureKeyVaultConfigSourceTest {
     }
 
     @Test
-    void writeConfig_shouldCreateResourceWhenTrue() throws JsonProcessingException {
+    void writeConfig_shouldCreateResourceWhenTrue() throws JacksonException {
         source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1"),
             secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 

@@ -11,17 +11,17 @@ import com.epam.aidial.cfg.service.config.transfer.MultiFileImportStrategy;
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareSchemaChecker;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.cfg.utils.CoreConfigVersionNormalizer;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.util.DefaultIndenter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.core.util.DefaultIndenter;
+import tools.jackson.core.util.DefaultPrettyPrinter;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,7 +104,7 @@ public class ValidateCommand implements Callable<Integer> {
                     .build();
             DefaultPrettyPrinter printer = new DefaultPrettyPrinter();
             printer.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
-            System.out.println(objectMapper.writer(printer).writeValueAsString(output));
+            System.out.println(objectMapper.writer().with(printer).writeValueAsString(output));
             return anyInvalid ? 1 : 0;
 
         } catch (Exception e) {
@@ -167,10 +167,10 @@ public class ValidateCommand implements Callable<Integer> {
 
     private String toErrorMessage(Exception e) {
         Throwable cause = e.getCause();
-        if (cause instanceof JsonParseException jpe) {
+        if (cause instanceof StreamReadException jpe) {
             return "Invalid JSON at line " + jpe.getLocation().getLineNr() + ": " + jpe.getOriginalMessage();
         }
-        if (cause instanceof JsonMappingException jme) {
+        if (cause instanceof DatabindException jme) {
             return "Invalid field '" + jme.getPathReference() + "': " + jme.getOriginalMessage();
         }
         return e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();

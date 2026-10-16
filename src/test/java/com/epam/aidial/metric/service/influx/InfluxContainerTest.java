@@ -7,7 +7,6 @@ import com.epam.aidial.metric.model.configuration.influx.InfluxDatasetDeclaratio
 import com.epam.aidial.metric.service.AbstractInfluxContainerTest;
 import com.epam.aidial.metric.service.WindowGapFiller;
 import com.epam.aidial.ql.Engine;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.InfluxDBClientOptions;
@@ -19,6 +18,7 @@ import org.testcontainers.containers.InfluxDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.databind.ObjectMapper;
 
 @Testcontainers
 class InfluxContainerTest extends AbstractInfluxContainerTest {

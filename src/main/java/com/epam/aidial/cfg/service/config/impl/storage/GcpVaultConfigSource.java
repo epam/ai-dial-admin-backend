@@ -2,8 +2,6 @@ package com.epam.aidial.cfg.service.config.impl.storage;
 
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.gax.rpc.ApiException;
 import com.google.api.gax.rpc.StatusCode;
 import com.google.cloud.secretmanager.v1.AccessSecretVersionResponse;
@@ -13,6 +11,8 @@ import com.google.cloud.secretmanager.v1.SecretVersionName;
 import com.google.protobuf.ByteString;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Objects;

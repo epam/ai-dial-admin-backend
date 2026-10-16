@@ -3,11 +3,12 @@ package com.epam.aidial.cfg.service.config.impl.storage;
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.util.HttpStatus;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -76,7 +77,7 @@ public class ConfigSourceConfigMap extends CompositeConfigSource {
 
             return writer.getBuffer().toString();
 
-        } catch (IOException e) {
+        } catch (IOException | JacksonException e) {
             throw new RuntimeException("Error writing config to config entry", e);
         }
     }

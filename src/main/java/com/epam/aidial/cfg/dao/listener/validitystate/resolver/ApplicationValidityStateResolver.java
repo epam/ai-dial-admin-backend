@@ -11,12 +11,13 @@ import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidationContext;
 import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidator;
 import com.epam.aidial.core.config.validation.SchemaConformToMetaSchemaValidator;
-import com.networknt.schema.ValidationMessage;
+import com.epam.aidial.core.config.validation.ValidationErrors;
+import com.networknt.schema.Error;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -43,8 +44,8 @@ public class ApplicationValidityStateResolver {
         var validationContext = new CustomApplicationConformToTypeSchemaValidationContext(
                 Map.of(applicationTypeSchemaEntity.getSchemaId(), coreApplicationTypeSchema)
         );
-        Set<ValidationMessage> appValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
-        Set<ValidationMessage> schemaValidationMessages = SchemaConformToMetaSchemaValidator.getValidationMessages(coreApplicationTypeSchema);
+        List<Error> appValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        List<Error> schemaValidationMessages = SchemaConformToMetaSchemaValidator.getValidationMessages(coreApplicationTypeSchema);
 
         if (appValidationMessages.isEmpty() && schemaValidationMessages.isEmpty()) {
             validityStateEntity.setValid(true);
@@ -67,8 +68,8 @@ public class ApplicationValidityStateResolver {
         return applicationTypeSchemaCoreMapper.mapToCoreString(applicationTypeSchema);
     }
 
-    private String resolveValidityStateMessage(Set<ValidationMessage> appValidationMessages,
-                                               Set<ValidationMessage> schemaValidationMessages) {
+    private String resolveValidityStateMessage(List<Error> appValidationMessages,
+                                               List<Error> schemaValidationMessages) {
         if (!appValidationMessages.isEmpty() && !schemaValidationMessages.isEmpty()) {
             String appValidityStateMessage = "App: " + buildValidationMessage(appValidationMessages);
             String schemaValidityStateMessage = "Schema: " + buildValidationMessage(schemaValidationMessages);
@@ -82,9 +83,9 @@ public class ApplicationValidityStateResolver {
         }
     }
 
-    private String buildValidationMessage(Set<ValidationMessage> validationMessages) {
+    private String buildValidationMessage(List<Error> validationMessages) {
         return validationMessages.stream()
-                .map(ValidationMessage::getMessage)
+                .map(ValidationErrors::format)
                 .collect(Collectors.joining(", "));
     }
 }

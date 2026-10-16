@@ -4,25 +4,22 @@ import com.epam.aidial.ql.dto.CompletableDto;
 import com.epam.aidial.ql.dto.ExpressionDto;
 import com.epam.aidial.ql.dto.StringExpressionDto;
 import com.epam.aidial.ql.dto.TupleDto;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.node.ValueNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ValueDeserializer;
 
-import java.io.IOException;
-
-public class ExpressionDeserializer extends JsonDeserializer<ExpressionDto> {
+public class ExpressionDeserializer extends ValueDeserializer<ExpressionDto> {
     @Override
-    public ExpressionDto deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-        final TreeNode tree = p.getCodec().readTree(p);
+    public ExpressionDto deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
+        final JsonNode tree = ctxt.readTree(p);
         if (tree.isValueNode()) {
-            return new StringExpressionDto(((ValueNode) tree).asText());
+            return new StringExpressionDto(tree.asString());
         } else if (tree.isObject()) {
-            return tree.traverse(p.getCodec()).readValueAs(CompletableDto.class);
+            return ctxt.readTreeAsValue(tree, CompletableDto.class);
         } else {
-            return tree.traverse(p.getCodec()).readValueAs(TupleDto.class);
+            return ctxt.readTreeAsValue(tree, TupleDto.class);
         }
     }
 }

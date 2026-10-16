@@ -1,10 +1,10 @@
 package com.epam.aidial.cfg.dto.databind;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,10 +18,9 @@ class JsonMapDeserializerTest {
     @Test
     void testDeserialize() throws IOException {
         // given
-        ObjectMapper mapper = JsonMapperConfiguration.createJsonMapper();
         SimpleModule module = new SimpleModule();
         module.addDeserializer(Map.class, new JsonMapDeserializer());
-        mapper.registerModule(module);
+        ObjectMapper mapper = JsonMapperConfiguration.createJsonMapper().rebuild().addModule(module).build();
         File file = new File("src/test/resources/defs.json");
 
         // when

@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.utils.json;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,7 +48,7 @@ public class JsonNodeComparator {
             return false;
         }
 
-        Iterator<String> fields = left.fieldNames();
+        Iterator<String> fields = left.propertyNames().iterator();
         while (fields.hasNext()) {
             String field = fields.next();
             if (!right.has(field)) {

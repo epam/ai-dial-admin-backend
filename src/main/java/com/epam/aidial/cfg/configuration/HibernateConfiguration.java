@@ -3,7 +3,7 @@ package com.epam.aidial.cfg.configuration;
 import com.epam.aidial.cfg.dao.hibernate.integrator.CustomIntegratorProvider;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
+import org.springframework.boot.hibernate.autoconfigure.HibernatePropertiesCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
