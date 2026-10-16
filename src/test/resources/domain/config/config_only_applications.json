@@ -44,7 +44,7 @@
             "reasoning_efforts": [],
             "skills_supported": false
           },
-          "override_paths": {
+          "overridePaths": {
             "createChatCompletion": "/v1/{overrideName}/chat/completions"
           },
           "defaults": {

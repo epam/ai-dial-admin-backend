@@ -123,7 +123,6 @@
           "base_url": "https://model.adapter.test.com"
         },
         "openaiResponses": {
-          "base_url": "https://model.adapter.test.com",
           "features": {
             "system_prompt_supported": true,
             "tools_supported": false,
@@ -140,10 +139,10 @@
             "custom_temperature_supported": true,
             "reasoning_efforts": [],
             "skills_supported": false
-          }
+          },
+          "base_url": "https://model.adapter.test.com"
         },
         "anthropicMessages": {
-          "base_url": "https://model.adapter.test.com",
           "features": {
             "rate_endpoint": "https://model.adapter.test.com/rate",
             "system_prompt_supported": true,
@@ -169,10 +168,11 @@
             ],
             "skills_supported": false
           },
-          "override_paths": {
+          "overridePaths": {
             "createMessage": "/v1/{overrideName}/messages",
             "getMessage": "/v1/{overrideName}/messages/{id}"
-          }
+          },
+          "base_url": "https://model.adapter.test.com"
         }
       },
       "interceptors": [
@@ -308,7 +308,6 @@
       },
       "interfaces": {
         "openaiChatCompletions": {
-          "base_url": "https://app.adapter.test.com",
           "features": {
             "system_prompt_supported": true,
             "tools_supported": true,
@@ -326,9 +325,10 @@
             "reasoning_efforts": [],
             "skills_supported": false
           },
-          "override_paths": {
+          "overridePaths": {
             "createChatCompletion": "/v1/{overrideName}/chat/completions"
-          }
+          },
+          "base_url": "https://app.adapter.test.com"
         }
       },
       "interceptors": [],

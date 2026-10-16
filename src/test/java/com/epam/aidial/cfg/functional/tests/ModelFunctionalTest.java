@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.InterfaceModeDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
@@ -604,6 +605,7 @@ public abstract class ModelFunctionalTest {
         ModelDto modelDto = createModelDto("1");
         modelDto.setUpstreams(List.of(secretUpstreamDto, publicUpstreamDto));
         modelDto.setEmbeddingDimensions(1536);
+        addInterfaces(modelDto);
         modelFacade.createModel(modelDto);
 
         JsonNode config = coreConfig();
@@ -646,6 +648,7 @@ public abstract class ModelFunctionalTest {
         modelDto.setUpstreams(List.of(secretUpstreamDto, publicUpstreamDto));
         modelDto.setDescription("description OLD");
         modelDto.setEmbeddingDimensions(1536);
+        addInterfaces(modelDto);
         modelFacade.createModel(modelDto);
 
         JsonNode config = coreConfig();
@@ -741,6 +744,20 @@ public abstract class ModelFunctionalTest {
         return modelDto;
     }
 
+    /**
+     * Adds an interface declaring every field whose Core wire format differs from the admin one
+     * (mode, defaultHeaders, overridePaths), so the sync state comparison covers them.
+     */
+    private static void addInterfaces(ModelDto modelDto) {
+        DeploymentInterfaceDto responsesInterface = new DeploymentInterfaceDto();
+        responsesInterface.setBaseUrl("https://model.adapter.test.com");
+        responsesInterface.setMode(InterfaceModeDto.PASSTHROUGH);
+        responsesInterface.setDefaultHeaders(Map.of("X-Header", "value"));
+        responsesInterface.setDefaults(Map.of("temperature", 0.5));
+        responsesInterface.setOverridePaths(Map.of("createResponse", "/v1/{overrideName}/responses"));
+        modelDto.setInterfaces(Map.of("openaiResponses", responsesInterface));
+    }
+
     private JsonNode coreConfig() throws JsonProcessingException {
         String config = """
                 {
@@ -806,6 +823,15 @@ public abstract class ModelFunctionalTest {
                         }
                       ],
                       "overrideName": null,
+                      "interfaces": {
+                        "openaiResponses": {
+                          "base_url": "https://model.adapter.test.com",
+                          "mode": "passthrough",
+                          "defaultHeaders": {"X-Header": "value"},
+                          "defaults": {"temperature": 0.5},
+                          "overridePaths": {"createResponse": "/v1/{overrideName}/responses"}
+                        }
+                      },
                       "fieldsHashingOrder": ["prefix.body.tools","prefix.body.messages"],
                       "embeddingDimensions": 1536,
                       "catalogSchemaId": null,
