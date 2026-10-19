@@ -28,15 +28,15 @@ import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorRunnerFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.core.config.CoreInterceptor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.util.Collection;
 import java.util.List;
@@ -226,7 +226,7 @@ public abstract class InterceptorFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyCreateAndUpdateInterceptorWithSchemas() throws JsonProcessingException {
+    public void shouldSuccessfullyCreateAndUpdateInterceptorWithSchemas() throws JacksonException {
         var dtosJson = ResourceUtils.readResource("/application_type_schema_dto.json");
         var applicationTypeSchemaDto = OBJECT_MAPPER.readValue(dtosJson, new TypeReference<ApplicationTypeSchemaDto>() {
         });
@@ -634,7 +634,7 @@ public abstract class InterceptorFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenInterceptorIsEqualToConfigInterceptor() throws JsonProcessingException {
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenInterceptorIsEqualToConfigInterceptor() throws JacksonException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         InterceptorDto interceptorDto = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto);
@@ -653,7 +653,7 @@ public abstract class InterceptorFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenInterceptorIsNotEqualToConfigInterceptorAndUpdatedLongAgo() throws JsonProcessingException {
+    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenInterceptorIsNotEqualToConfigInterceptorAndUpdatedLongAgo() throws JacksonException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         InterceptorDto interceptorDto = createInterceptorDto("1");
         interceptorDto.setDescription("description OLD");
@@ -674,7 +674,7 @@ public abstract class InterceptorFunctionalTest {
         assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
     }
 
-    private JsonNode coreConfig() throws JsonProcessingException {
+    private JsonNode coreConfig() throws JacksonException {
         String config = """
                 {
                   "interceptors": {

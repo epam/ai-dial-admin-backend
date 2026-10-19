@@ -36,7 +36,7 @@ import com.epam.aidial.cfg.functional.tests.history.RolesHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.RouteHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.ToolSetHistoryFunctionalTest;
 import org.junit.jupiter.api.Nested;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;

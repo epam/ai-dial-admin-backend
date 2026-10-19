@@ -11,26 +11,14 @@ import com.epam.aidial.ql.dto.filters.BinaryComparisonFilterDto;
 import com.epam.aidial.ql.dto.filters.NotDto;
 import com.epam.aidial.ql.dto.filters.OrDto;
 import com.epam.aidial.ql.dto.filters.UnaryComparisonFilterDto;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.module.SimpleDeserializers;
+import tools.jackson.core.Version;
+import tools.jackson.databind.module.SimpleModule;
 
-public class QueryLanguageModule extends Module {
-    @Override
-    public String getModuleName() {
-        return "QueryLanguageModule";
-    }
-
-    @Override
-    public Version version() {
-        return Version.unknownVersion();
-    }
-
-    @Override
-    public void setupModule(SetupContext context) {
-        final SimpleDeserializers deserializers = new SimpleDeserializers();
-        deserializers.addDeserializer(ExpressionDto.class, new ExpressionDeserializer());
-        deserializers.addDeserializer(FilterDto.class, new CommonFilterDeserializer<>(
+public class QueryLanguageModule extends SimpleModule {
+    public QueryLanguageModule() {
+        super("QueryLanguageModule", Version.unknownVersion());
+        addDeserializer(ExpressionDto.class, new ExpressionDeserializer());
+        addDeserializer(FilterDto.class, new CommonFilterDeserializer<>(
             UnaryComparisonFilterDto::new,
             BinaryComparisonFilterDto::new,
             AndDto.class,
@@ -38,10 +26,9 @@ public class QueryLanguageModule extends Module {
             NotDto.class,
             ExpressionDto.class
         ));
-        deserializers.addDeserializer(NotDto.class, new NotDeserializer());
-        deserializers.addDeserializer(CompletableDto.class, new CompletableDeserializer());
-        deserializers.addDeserializer(FromDto.class, new FromDeserializer());
-        deserializers.addDeserializer(SortDto.class, new SortDeserializer());
-        context.addDeserializers(deserializers);
+        addDeserializer(NotDto.class, new NotDeserializer());
+        addDeserializer(CompletableDto.class, new CompletableDeserializer());
+        addDeserializer(FromDto.class, new FromDeserializer());
+        addDeserializer(SortDto.class, new SortDeserializer());
     }
 }

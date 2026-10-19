@@ -1,8 +1,8 @@
 package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.ser.std.ToStringSerializer;
 
 public abstract class CoreUpstreamInterfaceMixinForCoreObjectMapper {
 

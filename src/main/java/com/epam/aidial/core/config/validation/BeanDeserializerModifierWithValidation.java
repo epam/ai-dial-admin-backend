@@ -1,36 +1,34 @@
 package com.epam.aidial.core.config.validation;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.DeserializationConfig;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.deser.BeanDeserializer;
-import com.fasterxml.jackson.databind.deser.BeanDeserializerBase;
-import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
-
-import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.DeserializationConfig;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.deser.ValueDeserializerModifier;
+import tools.jackson.databind.deser.bean.BeanDeserializer;
 
 import static com.epam.aidial.core.config.validation.ValidationUtil.validate;
 
-public class BeanDeserializerModifierWithValidation extends BeanDeserializerModifier {
+public class BeanDeserializerModifierWithValidation extends ValueDeserializerModifier {
 
     @Override
-    public JsonDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription beanDesc, JsonDeserializer<?> deserializer) {
+    public ValueDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription.Supplier beanDescRef, ValueDeserializer<?> deserializer) {
         if (deserializer instanceof BeanDeserializer) {
-            return new BeanDeserializerWithValidation((BeanDeserializerBase) deserializer);
+            return new BeanDeserializerWithValidation((BeanDeserializer) deserializer);
         }
         return deserializer;
     }
 
     private static class BeanDeserializerWithValidation extends BeanDeserializer {
 
-        protected BeanDeserializerWithValidation(BeanDeserializerBase src) {
+        protected BeanDeserializerWithValidation(BeanDeserializer src) {
             super(src);
         }
 
         @Override
-        public Object deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+        public Object deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
             Object instance = super.deserialize(p, ctxt);
             validate(instance);
             return instance;

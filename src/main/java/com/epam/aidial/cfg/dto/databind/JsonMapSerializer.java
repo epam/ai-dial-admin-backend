@@ -1,20 +1,20 @@
 package com.epam.aidial.cfg.dto.databind;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
-import java.io.IOException;
 import java.util.Map;
 
-public class JsonMapSerializer extends JsonSerializer<Map<String, String>> {
+public class JsonMapSerializer extends ValueSerializer<Map<String, String>> {
 
     @Override
-    public void serialize(Map<String, String> map, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+    public void serialize(Map<String, String> map, JsonGenerator jsonGenerator, SerializationContext serializerProvider) throws JacksonException {
         jsonGenerator.writeStartObject();
 
         for (Map.Entry<String, String> entry : map.entrySet()) {
-            jsonGenerator.writeFieldName(entry.getKey());
+            jsonGenerator.writeName(entry.getKey());
             jsonGenerator.writeRawValue(entry.getValue());
         }
 

@@ -3,9 +3,6 @@ package com.epam.aidial.cfg.service.config.impl.storage;
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreKey;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.gax.httpjson.HttpJsonStatusCode;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.api.gax.rpc.StatusCode;
@@ -23,6 +20,10 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -42,7 +43,7 @@ class GcpVaultConfigSourceTest {
     private SecretManagerServiceClient secretClient;
     @Captor
     private ArgumentCaptor<SecretPayload> keyVaultSecretArgumentCaptor;
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper = JsonMapper.builder().build();
     private GcpVaultConfigSource source;
     @Mock
     private ConfigSplitter configSplitter;
@@ -52,7 +53,7 @@ class GcpVaultConfigSourceTest {
     private VersionAwareFieldFilter versionAwareFieldFilter;
 
     @Test
-    void writeConfig_shouldWriteSecret() throws JsonProcessingException, UnsupportedEncodingException {
+    void writeConfig_shouldWriteSecret() throws JacksonException, UnsupportedEncodingException {
         source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
 
         Config config = new Config();
@@ -80,7 +81,7 @@ class GcpVaultConfigSourceTest {
     }
 
     @Test
-    void writeConfig_shouldWriteWithoutSplit() throws JsonProcessingException, UnsupportedEncodingException {
+    void writeConfig_shouldWriteWithoutSplit() throws JacksonException, UnsupportedEncodingException {
         source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1", "secret2"), objectMapper, "projectId");
 
         Config config = new Config();
@@ -113,7 +114,7 @@ class GcpVaultConfigSourceTest {
     }
 
     @Test
-    void writeConfig_shouldThrowExceptionNotEnoughSpace() throws JsonProcessingException {
+    void writeConfig_shouldThrowExceptionNotEnoughSpace() throws JacksonException {
         source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1", "secret2"), objectMapper, "projectId");
 
         Config config = new Config();
@@ -132,7 +133,7 @@ class GcpVaultConfigSourceTest {
     }
 
     @Test
-    void writeConfig_shouldCreateResourceWhenTrue() throws JsonProcessingException {
+    void writeConfig_shouldCreateResourceWhenTrue() throws JacksonException {
         source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
 
         Config config = new Config();

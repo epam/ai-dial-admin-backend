@@ -4,10 +4,6 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.model.EntitySyncStateStatus;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.utils.json.JsonNodeComparator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +13,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -173,7 +173,7 @@ class EntitySyncStateStatusResolverTest {
         Assertions.assertThat(actualResult).isEqualTo(expectedResult);
     }
 
-    private static Stream<Arguments> resolve_useJsonNodeEqualsAsComparatorTestParams() throws JsonProcessingException {
+    private static Stream<Arguments> resolve_useJsonNodeEqualsAsComparatorTestParams() throws JacksonException {
         JsonNode currentState = currentState();
         JsonNode configStateWithDifferentFieldOrderAndSameFieldValues = configStateWithDifferentFieldOrderAndSameFieldValues();
         JsonNode configStateWithSameFieldOrderAndDifferentFieldValues = configStateWithSameFieldOrderAndDifferentFieldValues();
@@ -214,29 +214,29 @@ class EntitySyncStateStatusResolverTest {
         );
     }
 
-    private static JsonNode currentState() throws JsonProcessingException {
+    private static JsonNode currentState() throws JacksonException {
         return OBJECT_MAPPER.readTree(ResourceUtils.readResource("/domain/resolver/entity-sync-state/status/current_state.json"));
     }
 
-    private static JsonNode configStateWithSameFieldOrderAndDifferentFieldValues() throws JsonProcessingException {
+    private static JsonNode configStateWithSameFieldOrderAndDifferentFieldValues() throws JacksonException {
         return OBJECT_MAPPER.readTree(ResourceUtils.readResource("/domain/resolver/entity-sync-state/status/config_state_with_same_field_order_and_different_field_values.json"));
     }
 
-    private static JsonNode configStateWithDifferentFieldOrderAndSameFieldValues() throws JsonProcessingException {
+    private static JsonNode configStateWithDifferentFieldOrderAndSameFieldValues() throws JacksonException {
         return OBJECT_MAPPER.readTree(ResourceUtils.readResource("/domain/resolver/entity-sync-state/status/config_state_with_different_field_order_and_same_field_values.json"));
     }
 
-    private static JsonNode configStateWithSameFieldOrderAndSameFieldValuesAndDifferentArrayElementsOrder() throws JsonProcessingException {
+    private static JsonNode configStateWithSameFieldOrderAndSameFieldValuesAndDifferentArrayElementsOrder() throws JacksonException {
         return OBJECT_MAPPER.readTree(ResourceUtils.readResource(
                 "/domain/resolver/entity-sync-state/status/config_state_with_same_field_order_and_same_field_values_and_different_array_elements_order.json"
         ));
     }
 
-    private static JsonNode configStateWithNewField() throws JsonProcessingException {
+    private static JsonNode configStateWithNewField() throws JacksonException {
         return OBJECT_MAPPER.readTree(ResourceUtils.readResource("/domain/resolver/entity-sync-state/status/config_state_with_new_field.json"));
     }
 
-    private static JsonNode configStateWithMissingField() throws JsonProcessingException {
+    private static JsonNode configStateWithMissingField() throws JacksonException {
         return OBJECT_MAPPER.readTree(ResourceUtils.readResource("/domain/resolver/entity-sync-state/status/config_state_with_missing_field.json"));
     }
 

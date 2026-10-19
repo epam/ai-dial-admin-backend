@@ -4,10 +4,10 @@ import com.epam.aidial.cfg.utils.SecretUtils;
 import com.epam.aidial.core.config.databind.JsonToStringDeserializer;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
     This class conforms to application type schema's meta schema. Main class for reference is CoreUpstream.

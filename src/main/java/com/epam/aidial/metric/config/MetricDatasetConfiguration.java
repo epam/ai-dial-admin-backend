@@ -6,7 +6,6 @@ import com.epam.aidial.metric.component.EngineFactoryManager;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.util.PlaceholderResolver;
 import com.epam.aidial.ql.Engine;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;

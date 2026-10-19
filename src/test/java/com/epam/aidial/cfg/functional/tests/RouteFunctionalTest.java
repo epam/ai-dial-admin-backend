@@ -10,14 +10,14 @@ import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
 import com.epam.aidial.core.config.CoreRoute;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.util.Collection;
 import java.util.List;
@@ -187,7 +187,7 @@ public abstract class RouteFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenRouteIsEqualToConfigRoute() throws JsonProcessingException {
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenRouteIsEqualToConfigRoute() throws JacksonException {
         RouteDto routeDto = createRouteDto("1");
         routeDto.setDescription("description");
         routeFacade.createRoute(routeDto);
@@ -206,7 +206,7 @@ public abstract class RouteFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetInProgressEntitySyncStateWhenRouteIsNotEqualToConfigRoute() throws JsonProcessingException {
+    public void shouldSuccessfullyGetInProgressEntitySyncStateWhenRouteIsNotEqualToConfigRoute() throws JacksonException {
         RouteDto routeDto = createRouteDto("1");
         routeDto.setRewritePath(true);
         routeFacade.createRoute(routeDto);
@@ -247,7 +247,7 @@ public abstract class RouteFunctionalTest {
                 .collect(Collectors.toMap(RouteDto::getName, Function.identity()));
     }
 
-    private JsonNode coreConfig() throws JsonProcessingException {
+    private JsonNode coreConfig() throws JacksonException {
         String config = """
                 {
                   "routes": {

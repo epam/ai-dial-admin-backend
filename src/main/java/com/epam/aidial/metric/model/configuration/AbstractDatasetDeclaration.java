@@ -1,8 +1,8 @@
 package com.epam.aidial.metric.model.configuration;
 
 import com.epam.aidial.metric.util.DurationDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.time.Duration;
 import java.util.List;

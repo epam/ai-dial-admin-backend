@@ -1,10 +1,10 @@
 package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolationException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.io.IOException;

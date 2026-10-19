@@ -5,9 +5,9 @@ import com.epam.aidial.cfg.dto.databind.JsonMapSerializer;
 import com.epam.aidial.cfg.dto.validation.annotation.ApplicationTypeSchema;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 import java.util.LinkedHashMap;
 import java.util.List;

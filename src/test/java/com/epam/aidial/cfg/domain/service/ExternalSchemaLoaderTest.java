@@ -2,8 +2,6 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ExternalSchema;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -52,7 +52,7 @@ class ExternalSchemaLoaderTest {
                """;
 
     @Test
-    void fetchExternalSchema_ShouldReturnSchema() throws JsonProcessingException {
+    void fetchExternalSchema_ShouldReturnSchema() throws JacksonException {
         var expected = OBJECT_MAPPER.readValue(appSchema, ExternalSchema.class);
         when(restTemplate.getForObject(SCHEMA_URL, ExternalSchema.class))
                 .thenReturn(expected);

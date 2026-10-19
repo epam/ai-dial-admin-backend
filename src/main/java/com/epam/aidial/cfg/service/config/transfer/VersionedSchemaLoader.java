@@ -4,8 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.validator.CoreConfigVersionValidator;
 import com.epam.aidial.cfg.exception.InvalidVersionException;
 import com.epam.aidial.cfg.exception.SchemaValidationException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
@@ -13,12 +12,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.PostConstruct;
 
 import static com.epam.aidial.cfg.domain.validator.CoreConfigVersionValidator.LATEST_VERSION;
 import static com.epam.aidial.cfg.domain.validator.CoreConfigVersionValidator.VERSION_PATTERN;
@@ -65,7 +66,7 @@ public class VersionedSchemaLoader {
                 knownVersions.add(nearestVersion);
                 return schema;
             }
-        } catch (IOException e) {
+        } catch (IOException | JacksonException e) {
             String errorMessage = "Failed to load schema for version: %s".formatted(version);
             log.error(errorMessage, e);
             throw new SchemaValidationException(errorMessage, e);

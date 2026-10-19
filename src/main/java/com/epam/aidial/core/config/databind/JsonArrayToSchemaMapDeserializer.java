@@ -1,22 +1,22 @@
 package com.epam.aidial.core.config.databind;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.fasterxml.jackson.databind.node.NullNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.TreeNode;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.exc.InvalidFormatException;
+import tools.jackson.databind.node.NullNode;
 
-public class JsonArrayToSchemaMapDeserializer extends JsonDeserializer<Map<String, String>> {
+public class JsonArrayToSchemaMapDeserializer extends ValueDeserializer<Map<String, String>> {
 
     @Override
-    public Map<String, String> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-        TreeNode tree = jsonParser.readValueAsTree();
+    public Map<String, String> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws JacksonException {
+        TreeNode tree = deserializationContext.readTree(jsonParser);
         if (!tree.isArray()) {
             throw InvalidFormatException.from(jsonParser, "Expected a JSON array of schemas", tree.toString(), Map.class);
         }
@@ -34,7 +34,7 @@ public class JsonArrayToSchemaMapDeserializer extends JsonDeserializer<Map<Strin
                 throw new InvalidFormatException(jsonParser, "JSON Schema for the custom app should have $id property",
                         valueNode.toPrettyString(), Map.class);
             }
-            String schemaId = valueNode.get("$id").asText();
+            String schemaId = valueNode.get("$id").asString();
             result.put(schemaId, valueNode.toString());
         }
         return result;

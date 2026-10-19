@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.service.config.impl.storage;
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreKey;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.junit.jupiter.api.Assertions;
@@ -11,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -41,7 +42,7 @@ class ConfigSourceKubeSecretTest {
     @Mock
     private KubernetesClient kubernetesClient;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
     private ConfigSourceKubeSecret source;
 

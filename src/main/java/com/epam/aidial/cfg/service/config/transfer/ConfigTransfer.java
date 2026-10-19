@@ -18,8 +18,6 @@ import com.epam.aidial.cfg.service.config.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportConfigMetadataProvider;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -29,6 +27,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -202,12 +203,17 @@ public class ConfigTransfer {
         for (MultipartFile file : files) {
             try (InputStream stream = file.getInputStream()) {
                 tree = jsonMapper.readerForUpdating(tree).readTree(stream);
-            } catch (IOException e) {
+            } catch (IOException | JacksonException e) {
                 throw new RuntimeException("Failed to read file: " + file.getOriginalFilename(), e);
             }
         }
 
-        return jsonMapper.convertValue(tree, Config.class);
+        try {
+            return jsonMapper.convertValue(tree, Config.class);
+        } catch (JacksonException e) {
+            // Jackson 2 reported conversion failures as IllegalArgumentException (mapped to HTTP 400)
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
     }
 
     private Map<String, String> normalizeZipFileNames(Map<String, String> map) {
