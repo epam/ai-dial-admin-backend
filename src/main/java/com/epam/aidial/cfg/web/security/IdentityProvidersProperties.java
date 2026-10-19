@@ -1,8 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -10,12 +8,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.PostConstruct;
 
 @Component
 @ConditionalOnProperty(value = "config.rest.security.mode", havingValue = "oidc", matchIfMissing = true)
@@ -107,7 +107,7 @@ public class IdentityProvidersProperties {
                 Map<String, Set<UserRole>> rolesMappingMap = objectMapper.readValue(provider.getRolesMapping(), new TypeReference<>() {
                 });
                 providersRolesMapping.put(name, rolesMappingMap);
-            } catch (JsonProcessingException ex) {
+            } catch (JacksonException ex) {
                 log.warn("Skipping provider '{}' — invalid roles mapping", name, ex);
                 return true;
             }

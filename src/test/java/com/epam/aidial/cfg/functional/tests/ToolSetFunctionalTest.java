@@ -23,10 +23,6 @@ import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import com.epam.aidial.core.config.CoreToolSet;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Assertions;
@@ -34,6 +30,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.util.Collection;
 import java.util.List;
@@ -498,7 +498,7 @@ public abstract class ToolSetFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenToolSetIsEqualToConfigToolSet() throws JsonProcessingException {
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenToolSetIsEqualToConfigToolSet() throws JacksonException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
@@ -517,7 +517,7 @@ public abstract class ToolSetFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenToolSetIsNotEqualToConfigToolSetAndUpdatedLongAgo() throws JsonProcessingException {
+    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenToolSetIsNotEqualToConfigToolSetAndUpdatedLongAgo() throws JacksonException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetDto.setDescription("description OLD");
@@ -612,7 +612,7 @@ public abstract class ToolSetFunctionalTest {
                 .collect(Collectors.toMap(ToolSetDto::getName, Function.identity()));
     }
 
-    private JsonNode coreConfig() throws JsonProcessingException {
+    private JsonNode coreConfig() throws JacksonException {
         String config = """
                 {
                   "toolsets": {

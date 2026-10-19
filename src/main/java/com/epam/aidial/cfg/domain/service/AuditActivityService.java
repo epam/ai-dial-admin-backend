@@ -37,7 +37,7 @@ public class AuditActivityService {
 
     @Transactional(readOnly = true)
     public Page<AuditActivity> getActivitiesList(PageRequestModel pageRequest) {
-        return getActivitiesWithSpecification(pageRequest, null);
+        return getActivitiesWithSpecification(pageRequest, Specification.unrestricted());
     }
 
     @Transactional(readOnly = true)

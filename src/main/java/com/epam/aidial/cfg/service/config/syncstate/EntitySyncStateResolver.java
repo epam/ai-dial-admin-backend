@@ -5,13 +5,13 @@ import com.epam.aidial.cfg.model.EntitySyncState;
 import com.epam.aidial.cfg.model.EntitySyncStateStatus;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.function.Function;
 
@@ -70,7 +70,7 @@ public class EntitySyncStateResolver {
                                                        String entityKeyValueInConfig) {
         Function<JsonNode, JsonNode> entityFinder = jsonNode -> {
             for (JsonNode node : jsonNode) {
-                if (node.has(entityKeyInConfig) && node.get(entityKeyInConfig).asText().equals(entityKeyValueInConfig)) {
+                if (node.has(entityKeyInConfig) && node.get(entityKeyInConfig).asString().equals(entityKeyValueInConfig)) {
                     return node;
                 }
             }
@@ -126,7 +126,7 @@ public class EntitySyncStateResolver {
         return new EntitySyncState(normalizedCurrentStateJsonNode, configStateJsonNode, syncStateStatus);
     }
 
-    private <T> JsonNode getNormalizedCurrentStateJsonNode(T currentState) throws JsonProcessingException {
+    private <T> JsonNode getNormalizedCurrentStateJsonNode(T currentState) throws JacksonException {
         if (currentState instanceof String currentStateAsString) {
             return objectMapper.readTree(currentStateAsString);
         }

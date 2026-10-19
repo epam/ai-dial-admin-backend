@@ -1,13 +1,12 @@
 package com.epam.aidial.cfg.dto.databind;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,9 +24,9 @@ class JsonMapSerializerTest {
         Map<String, String> map = new HashMap<>();
         map.put("ToolEndpointInfoMethodType", "{\"enum\":[\"get\",\"post\",\"put\",\"delete\"],\"title\":\"ToolEndpointInfoMethodType\",\"type\":\"string\"}");
         Writer jsonWriter = new StringWriter();
-        JsonGenerator jsonGenerator = new JsonFactory().createGenerator(jsonWriter);
         ObjectMapper mapper = JsonMapperConfiguration.createJsonMapper();
-        SerializerProvider serializerProvider = mapper.getSerializerProvider();
+        JsonGenerator jsonGenerator = mapper.createGenerator(jsonWriter);
+        SerializationContext serializerProvider = mapper._serializationContext();
         JsonMapSerializer jsonMapSerializer = new JsonMapSerializer();
         File file = new File("src/test/resources/defs.json");
         String expected = FileUtils.readFileToString(file, StandardCharsets.UTF_8);

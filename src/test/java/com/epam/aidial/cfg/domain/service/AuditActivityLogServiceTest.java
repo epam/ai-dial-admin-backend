@@ -8,12 +8,13 @@ import com.epam.aidial.cfg.domain.model.activity.ActivityType;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.UUID;
 
@@ -30,7 +31,7 @@ class AuditActivityLogServiceTest {
 
     @BeforeEach
     void setUp() {
-        var objectMapper = new ObjectMapper();
+        var objectMapper = JsonMapper.builder().build();
         service = new AuditActivityLogService(
                 auditActivityJpaRepository,
                 transactionTimestampContext,

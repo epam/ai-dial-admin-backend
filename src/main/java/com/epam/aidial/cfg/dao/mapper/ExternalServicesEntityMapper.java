@@ -1,11 +1,11 @@
 package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.domain.model.ExternalService;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.mapstruct.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 

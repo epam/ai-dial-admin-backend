@@ -26,7 +26,6 @@ import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapperImpl;
 import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaRouteCoreMapperImpl;
 import com.epam.aidial.cfg.domain.mapper.DeploymentCoreMapperImpl;
 import com.epam.aidial.cfg.domain.mapper.ResourceAuthSettingsCoreMapperImpl;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 

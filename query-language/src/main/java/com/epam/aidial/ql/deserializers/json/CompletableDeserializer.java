@@ -1,24 +1,22 @@
 package com.epam.aidial.ql.deserializers.json;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.epam.aidial.ql.dto.CompletableDto;
 import com.epam.aidial.ql.dto.QueryDto;
 import com.epam.aidial.ql.dto.UnionAllDto;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ValueDeserializer;
 
-import java.io.IOException;
-
-public class CompletableDeserializer extends JsonDeserializer<CompletableDto> {
+public class CompletableDeserializer extends ValueDeserializer<CompletableDto> {
     @Override
-    public CompletableDto deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-        final TreeNode tree = p.getCodec().readTree(p);
+    public CompletableDto deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
+        final JsonNode tree = ctxt.readTree(p);
         if (tree.get("unionAll") != null) {
-            return tree.traverse(p.getCodec()).readValueAs(UnionAllDto.class);
+            return ctxt.readTreeAsValue(tree, UnionAllDto.class);
         } else {
-            return tree.traverse(p.getCodec()).readValueAs(QueryDto.class);
+            return ctxt.readTreeAsValue(tree, QueryDto.class);
         }
     }
 }

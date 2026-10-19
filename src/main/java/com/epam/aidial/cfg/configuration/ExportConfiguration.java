@@ -20,7 +20,6 @@ import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.cfg.service.config.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.service.config.transfer.exporter.CoreConfigRetrieverImpl;
 import com.epam.aidial.cfg.service.config.transfer.exporter.CoreConfigRetrieverSecuredImpl;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.vault.core.VaultTemplate;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.concurrent.Executors;

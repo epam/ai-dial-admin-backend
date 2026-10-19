@@ -3,13 +3,13 @@ package com.epam.aidial.cfg.domain.mapper;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -68,7 +68,7 @@ public abstract class ApplicationTypeSchemaCoreMapper {
         }
         try {
             return objectMapper.writeValueAsString(applicationTypeSchema);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.warn("Error converting CoreApplicationTypeSchema to JSON string: {}", applicationTypeSchema, e);
             throw new RuntimeException("Error converting CoreApplicationTypeSchema to JSON string", e);
         }
@@ -80,7 +80,7 @@ public abstract class ApplicationTypeSchemaCoreMapper {
         }
         try {
             return objectMapper.readValue(applicationTypeSchema, CoreApplicationTypeSchema.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.warn("Error converting JSON to CoreApplicationTypeSchema: {}", applicationTypeSchema, e);
             throw new RuntimeException("Error converting JSON to CoreApplicationTypeSchema", e);
         }

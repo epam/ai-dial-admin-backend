@@ -21,22 +21,18 @@ import com.epam.aidial.ql.dto.filters.BinaryComparisonFilterDto;
 import com.epam.aidial.ql.dto.filters.NotDto;
 import com.epam.aidial.ql.dto.filters.OrDto;
 import com.epam.aidial.ql.dto.filters.UnaryComparisonFilterDto;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Arrays;
 import java.util.List;
 
 
 public class JsonTests {
-    private static final ObjectMapper objectMapper;
-
-    static {
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new QueryLanguageModule());
-    }
+    private static final ObjectMapper objectMapper = JsonMapper.builder().addModule(new QueryLanguageModule()).build();
 
     @Test
     public void shouldParseFilters() throws Throwable {

@@ -1,39 +1,40 @@
 package com.epam.aidial.cfg.migration.db;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.networknt.schema.Error;
 import com.networknt.schema.ExecutionContext;
-import com.networknt.schema.Format;
-import com.networknt.schema.JsonMetaSchema;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.JsonType;
-import com.networknt.schema.NonValidationKeyword;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.TypeFactory;
-import com.networknt.schema.ValidationContext;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaContext;
+import com.networknt.schema.SchemaLocation;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SchemaRegistryConfig;
+import com.networknt.schema.dialect.Dialect;
+import com.networknt.schema.dialect.Dialects;
+import com.networknt.schema.format.Format;
+import com.networknt.schema.keyword.NonValidationKeyword;
+import com.networknt.schema.path.PathType;
+import com.networknt.schema.utils.JsonType;
+import com.networknt.schema.utils.TypeFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.json.JsonMapper;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -54,7 +55,8 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
             update application_entity set validity_state_message = ?, validity_state_is_valid = ?
             where deployment_name = ?""";
 
-    private static final JsonMetaSchema.Builder METASCHEMA_BUILDER = JsonMetaSchema.builder("https://dial.epam.com/application_type_schemas/schema#", JsonMetaSchema.getV7())
+    private static final SchemaRegistryConfig SCHEMA_REGISTRY_CONFIG = SchemaRegistryConfig.builder().pathType(PathType.LEGACY).build();
+    private static final Dialect.Builder DIALECT_BUILDER = Dialect.builder("https://dial.epam.com/application_type_schemas/schema#", Dialects.getDraft7())
             .keyword(new NonValidationKeyword("dial:applicationTypeEditorUrl"))
             .keyword(new NonValidationKeyword("dial:applicationTypeViewerUrl"))
             .keyword(new NonValidationKeyword("dial:applicationTypeDisplayName"))
@@ -74,7 +76,7 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
             .keyword(new NonValidationKeyword("$defs"))
             .format(new DialFileFormat());
 
-    private static final JsonMetaSchema DIAL_META_SCHEMA = METASCHEMA_BUILDER
+    private static final Dialect DIAL_DIALECT = DIALECT_BUILDER
             .keyword(new NonValidationKeyword("dial:meta"))
             .keyword(new NonValidationKeyword("dial:file"))
             .keyword(new NonValidationKeyword("dial:resource"))
@@ -83,7 +85,7 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
     @Override
     public void migrate(Context context) throws Exception {
         Connection connection = context.getConnection();
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = JsonMapper.builder().build();
 
         try (Statement selectStatement = connection.createStatement();
                 ResultSet result = selectStatement.executeQuery(SELECT_APPLICATIONS_WITH_SCHEMA);
@@ -93,7 +95,7 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
                 Application application = readApp(objectMapper, result);
                 ApplicationTypeSchema applicationTypeSchema = readAppTypeSchema(objectMapper, result);
 
-                Set<ValidationMessage> validationMessages = validateAppProperties(
+                List<Error> validationMessages = validateAppProperties(
                         objectMapper,
                         application.applicationProperties(),
                         applicationTypeSchema
@@ -101,7 +103,7 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
 
                 if (!validationMessages.isEmpty()) {
                     String validityStateMessage = validationMessages.stream()
-                            .map(ValidationMessage::getMessage)
+                            .map(Error::toString)
                             .collect(Collectors.joining(", "));
                     updateStatement.setString(1, validityStateMessage);
                     updateStatement.setBoolean(2, false);
@@ -118,14 +120,14 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
         }
     }
 
-    private Application readApp(ObjectMapper objectMapper, ResultSet result) throws SQLException, JsonProcessingException {
+    private Application readApp(ObjectMapper objectMapper, ResultSet result) throws SQLException, JacksonException {
         return new Application(
                 result.getString("deployment_name"),
                 map(objectMapper, result.getString("application_properties"))
         );
     }
 
-    private ApplicationTypeSchema readAppTypeSchema(ObjectMapper objectMapper, ResultSet result) throws SQLException, JsonProcessingException {
+    private ApplicationTypeSchema readAppTypeSchema(ObjectMapper objectMapper, ResultSet result) throws SQLException, JacksonException {
         return new ApplicationTypeSchema(
                 result.getString("schema_id"),
                 map(objectMapper, result.getString("defs")),
@@ -139,7 +141,7 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
         return resultSet.wasNull() ? null : value.getArray();
     }
 
-    private <T> Map<String, T> map(ObjectMapper objectMapper, String value) throws JsonProcessingException {
+    private <T> Map<String, T> map(ObjectMapper objectMapper, String value) throws JacksonException {
         if (value == null) {
             return Map.of();
         }
@@ -147,19 +149,19 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
         });
     }
 
-    private Set<ValidationMessage> validateAppProperties(ObjectMapper objectMapper,
-                                                         Map<String, Object> appProperties,
-                                                         ApplicationTypeSchema applicationTypeSchema) throws JsonProcessingException, URISyntaxException {
+    private List<Error> validateAppProperties(ObjectMapper objectMapper,
+                                              Map<String, Object> appProperties,
+                                              ApplicationTypeSchema applicationTypeSchema) throws JacksonException {
         String schemaId = applicationTypeSchema.schemaId();
 
         Map<String, String> applicationTypeSchemas = Map.of(schemaId, objectMapper.writeValueAsString(applicationTypeSchema));
 
-        JsonSchemaFactory schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7, builder ->
-                builder.schemaLoaders(loaders -> loaders.schemas(applicationTypeSchemas))
-                        .metaSchema(DIAL_META_SCHEMA)
+        SchemaRegistry schemaRegistry = SchemaRegistry.withDialects(
+                List.of(Dialects.getDraft7(), DIAL_DIALECT),
+                builder -> builder.schemas(applicationTypeSchemas).schemaRegistryConfig(SCHEMA_REGISTRY_CONFIG)
         );
         JsonNode applicationNode = objectMapper.valueToTree(appProperties);
-        JsonSchema schema = schemaFactory.getSchema(new URI(schemaId));
+        Schema schema = schemaRegistry.getSchema(SchemaLocation.of(schemaId));
 
         return schema.validate(applicationNode);
     }
@@ -177,14 +179,14 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
                                          Object required) {
     }
 
-    private static class JsonMapSerializer extends JsonSerializer<Map<String, String>> {
+    private static class JsonMapSerializer extends ValueSerializer<Map<String, String>> {
 
         @Override
-        public void serialize(Map<String, String> map, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+        public void serialize(Map<String, String> map, JsonGenerator jsonGenerator, SerializationContext serializerProvider) throws JacksonException {
             jsonGenerator.writeStartObject();
 
             for (Map.Entry<String, String> entry : map.entrySet()) {
-                jsonGenerator.writeFieldName(entry.getKey());
+                jsonGenerator.writeName(entry.getKey());
                 jsonGenerator.writeRawValue(entry.getValue());
             }
 
@@ -197,12 +199,12 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
         private static final Pattern PATTERN = Pattern.compile("^files/([a-zA-Z0-9]+)/((?:(?:[a-zA-Z0-9_\\-.~]|%[a-zA-Z0-9]{2})+/?)+)$");
 
         @Override
-        public boolean matches(ExecutionContext executionContext, ValidationContext validationContext, JsonNode value) {
-            JsonType nodeType = TypeFactory.getValueNodeType(value, validationContext.getConfig());
+        public boolean matches(ExecutionContext executionContext, SchemaContext schemaContext, JsonNode value) {
+            JsonType nodeType = TypeFactory.getValueNodeType(value, schemaContext.getSchemaRegistryConfig());
             if (nodeType != JsonType.STRING) {
                 return false;
             }
-            String nodeValue = value.textValue();
+            String nodeValue = value.asString();
             Matcher matcher = PATTERN.matcher(nodeValue);
             return matcher.matches();
         }

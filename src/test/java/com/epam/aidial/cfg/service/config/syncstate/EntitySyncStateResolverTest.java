@@ -5,16 +5,16 @@ import com.epam.aidial.cfg.model.EntitySyncState;
 import com.epam.aidial.cfg.model.EntitySyncStateStatus;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -69,7 +69,7 @@ class EntitySyncStateResolverTest {
     }
 
     @Test
-    void resolveForEntityInObject_configDoesNotHaveRequestedEntities_returnsUnknownState() throws JsonProcessingException {
+    void resolveForEntityInObject_configDoesNotHaveRequestedEntities_returnsUnknownState() throws JacksonException {
         // given
         String configJson = "{}";
         JsonNode config = HELPER_OBJECT_MAPPER.readTree(configJson);
@@ -84,7 +84,7 @@ class EntitySyncStateResolverTest {
     }
 
     @Test
-    void resolveForEntityInObject_configHasRequestedEntitiesButDoesNotHaveEntityWithRequestedKey_returnsStateWithoutConfigStatePart() throws JsonProcessingException {
+    void resolveForEntityInObject_configHasRequestedEntitiesButDoesNotHaveEntityWithRequestedKey_returnsStateWithoutConfigStatePart() throws JacksonException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -128,7 +128,7 @@ class EntitySyncStateResolverTest {
     }
 
     @Test
-    void resolveForEntityInObject_configHasRequestedEntitiesAndHasEntityWithRequestedKey_returnsFullState() throws JsonProcessingException {
+    void resolveForEntityInObject_configHasRequestedEntitiesAndHasEntityWithRequestedKey_returnsFullState() throws JacksonException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -181,7 +181,7 @@ class EntitySyncStateResolverTest {
 
     @Test
     void resolveForEntityInObject_configHasRequestedEntitiesAndHasEntityWithRequestedKeyAndCurrentStateIsInvalid_returnsStateWithoutCurrentStatePart()
-            throws JsonProcessingException {
+            throws JacksonException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -258,7 +258,7 @@ class EntitySyncStateResolverTest {
     }
 
     @Test
-    void resolveForEntityInArray_configDoesNotHaveRequestedEntities_returnsUnknownState() throws JsonProcessingException {
+    void resolveForEntityInArray_configDoesNotHaveRequestedEntities_returnsUnknownState() throws JacksonException {
         // given
         String configJson = "{}";
         JsonNode config = HELPER_OBJECT_MAPPER.readTree(configJson);
@@ -273,7 +273,7 @@ class EntitySyncStateResolverTest {
     }
 
     @Test
-    void resolveForEntityInArray_configHasRequestedEntitiesButDoesNotHaveEntityWithRequestedKey_returnsStateWithoutConfigStatePart() throws JsonProcessingException {
+    void resolveForEntityInArray_configHasRequestedEntitiesButDoesNotHaveEntityWithRequestedKey_returnsStateWithoutConfigStatePart() throws JacksonException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -318,7 +318,7 @@ class EntitySyncStateResolverTest {
     }
 
     @Test
-    void resolveForEntityInArray_configHasRequestedEntitiesAndHasEntityWithRequestedKey_returnsFullState() throws JsonProcessingException {
+    void resolveForEntityInArray_configHasRequestedEntitiesAndHasEntityWithRequestedKey_returnsFullState() throws JacksonException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -373,7 +373,7 @@ class EntitySyncStateResolverTest {
 
     @Test
     void resolveForEntityInArray_configHasRequestedEntitiesAndHasEntityWithRequestedKeyAndCurrentStateIsInvalid_returnsStateWithoutCurrentStatePart()
-            throws JsonProcessingException {
+            throws JacksonException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;

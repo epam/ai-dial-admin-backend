@@ -1,8 +1,8 @@
 package com.epam.aidial.cfg.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
+import tools.jackson.databind.JsonNode;
 
 @FeignClient(
         name = "backendAuthenticatedConfigClient",

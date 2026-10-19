@@ -1,14 +1,14 @@
 package com.epam.aidial.cfg.migration.db;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -100,9 +100,9 @@ public class V1_39__MigrateModellEndpoint extends BaseJavaMigration {
         }
     }
 
-    private static List<AdapterDto> readAdaptersFromEnvVar(String adaptersJson) throws JsonProcessingException {
+    private static List<AdapterDto> readAdaptersFromEnvVar(String adaptersJson) throws JacksonException {
         if (StringUtils.isNotBlank(adaptersJson)) {
-            return new ObjectMapper().readValue(adaptersJson, new TypeReference<List<AdapterDto>>() {
+            return JsonMapper.builder().build().readValue(adaptersJson, new TypeReference<List<AdapterDto>>() {
             });
         }
         return List.of();

@@ -3,10 +3,10 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.ExternalSchema;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -154,12 +154,12 @@ class ApplicationTypeSchemaMergerTest {
         assertEquals(getApplicationTypeSchema(expected), target);
     }
 
-    private ApplicationTypeSchema getApplicationTypeSchema(String schema) throws JsonProcessingException {
+    private ApplicationTypeSchema getApplicationTypeSchema(String schema) throws JacksonException {
         return OBJECT_MAPPER.readValue(schema, ApplicationTypeSchema.class);
 
     }
 
-    private ExternalSchema getExternalSchema(String schema) throws JsonProcessingException {
+    private ExternalSchema getExternalSchema(String schema) throws JacksonException {
         return OBJECT_MAPPER.readValue(schema, ExternalSchema.class);
     }
 

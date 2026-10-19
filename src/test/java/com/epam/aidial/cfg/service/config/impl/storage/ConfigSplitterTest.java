@@ -13,10 +13,10 @@ import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.CoreRole;
 import com.epam.aidial.core.config.CoreRoute;
 import com.epam.aidial.core.config.CoreToolSet;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;

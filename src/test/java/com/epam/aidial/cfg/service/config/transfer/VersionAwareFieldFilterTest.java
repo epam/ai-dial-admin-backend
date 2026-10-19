@@ -5,8 +5,6 @@ import com.epam.aidial.cfg.exception.SchemaValidationException;
 import com.epam.aidial.cfg.service.config.transfer.version.CoreConfigVersionService;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.core.config.Config;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +15,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -427,8 +427,8 @@ class VersionAwareFieldFilterTest {
 
         // then
         JsonNode interfaces = result.get("models").get("m1").get("interfaces");
-        assertThat(interfaces.get("openaiChatCompletions").get("base_url").asText()).isEqualTo("http://model.adapter");
-        assertThat(interfaces.get("anthropicMessages").get("base_url").asText()).isEqualTo("http://model.adapter");
+        assertThat(interfaces.get("openaiChatCompletions").get("base_url").asString()).isEqualTo("http://model.adapter");
+        assertThat(interfaces.get("anthropicMessages").get("base_url").asString()).isEqualTo("http://model.adapter");
     }
 
     @Test
@@ -465,7 +465,7 @@ class VersionAwareFieldFilterTest {
         assertThat(interfaces.get("openaiChatCompletions").has("features")).isFalse();
 
         JsonNode features = interfaces.get("anthropicMessages").get("features");
-        assertThat(features.get("rate_endpoint").asText()).isEqualTo("http://model.adapter/rate");
+        assertThat(features.get("rate_endpoint").asString()).isEqualTo("http://model.adapter/rate");
         assertThat(features.get("tools_supported").asBoolean()).isFalse();
         assertThat(features.get("reasoning_efforts"))
                 .isEqualTo(MAPPER.readTree("""
@@ -535,7 +535,7 @@ class VersionAwareFieldFilterTest {
 
         // then the interface itself survives - only the unsupported features field is stripped
         JsonNode deploymentInterface = result.get("models").get("m1").get("interfaces").get("openaiChatCompletions");
-        assertThat(deploymentInterface.get("base_url").asText()).isEqualTo("http://model.adapter");
+        assertThat(deploymentInterface.get("base_url").asString()).isEqualTo("http://model.adapter");
         assertThat(deploymentInterface.has("features")).isFalse();
     }
 
@@ -568,8 +568,8 @@ class VersionAwareFieldFilterTest {
         // then
         JsonNode overridePaths = result.get("models").get("m1").get("interfaces")
                 .get("openaiResponses").get("overridePaths");
-        assertThat(overridePaths.get("createResponse").asText()).isEqualTo("/v1/{overrideName}/responses");
-        assertThat(overridePaths.get("getResponse").asText()).isEqualTo("/v1/{overrideName}/responses/{id}");
+        assertThat(overridePaths.get("createResponse").asString()).isEqualTo("/v1/{overrideName}/responses");
+        assertThat(overridePaths.get("getResponse").asString()).isEqualTo("/v1/{overrideName}/responses/{id}");
     }
 
     @Test
@@ -630,7 +630,7 @@ class VersionAwareFieldFilterTest {
 
         // then the interface itself survives - only the unsupported overridePaths field is stripped
         JsonNode deploymentInterface = result.get("models").get("m1").get("interfaces").get("openaiChatCompletions");
-        assertThat(deploymentInterface.get("base_url").asText()).isEqualTo("http://model.adapter");
+        assertThat(deploymentInterface.get("base_url").asString()).isEqualTo("http://model.adapter");
         assertThat(deploymentInterface.has("overridePaths")).isFalse();
     }
 
@@ -661,7 +661,7 @@ class VersionAwareFieldFilterTest {
 
         // then the interface itself survives - only the unsupported defaults field is stripped
         JsonNode deploymentInterface = result.get("models").get("m1").get("interfaces").get("openaiChatCompletions");
-        assertThat(deploymentInterface.get("base_url").asText()).isEqualTo("http://model.adapter");
+        assertThat(deploymentInterface.get("base_url").asString()).isEqualTo("http://model.adapter");
         assertThat(deploymentInterface.has("defaults")).isFalse();
     }
 
@@ -695,10 +695,10 @@ class VersionAwareFieldFilterTest {
 
         // then
         JsonNode cacheRead = result.get("models").get("m1").get("pricing").get("cacheRead");
-        assertThat(cacheRead.get("test").get("field").asText()).isEqualTo("tokenCount");
-        assertThat(cacheRead.get("test").get("operator").asText()).isEqualTo(">");
-        assertThat(cacheRead.get("ifTrue").asText()).isEqualTo("0.0005");
-        assertThat(cacheRead.get("ifFalse").asText()).isEqualTo("0.001");
+        assertThat(cacheRead.get("test").get("field").asString()).isEqualTo("tokenCount");
+        assertThat(cacheRead.get("test").get("operator").asString()).isEqualTo(">");
+        assertThat(cacheRead.get("ifTrue").asString()).isEqualTo("0.0005");
+        assertThat(cacheRead.get("ifFalse").asString()).isEqualTo("0.001");
         assertThat(schemaChecker.check(result, "0.48.0")).isEmpty();
     }
 
@@ -737,10 +737,10 @@ class VersionAwareFieldFilterTest {
         // then
         JsonNode cacheRead = result.get("models").get("m1").get("pricing").get("cacheRead");
         JsonNode nestedIfTrue = cacheRead.get("ifTrue");
-        assertThat(nestedIfTrue.get("test").get("field").asText()).isEqualTo("tokenCount");
-        assertThat(nestedIfTrue.get("ifTrue").asText()).isEqualTo("0.0001");
-        assertThat(nestedIfTrue.get("ifFalse").asText()).isEqualTo("0.0005");
-        assertThat(cacheRead.get("ifFalse").asText()).isEqualTo("0.001");
+        assertThat(nestedIfTrue.get("test").get("field").asString()).isEqualTo("tokenCount");
+        assertThat(nestedIfTrue.get("ifTrue").asString()).isEqualTo("0.0001");
+        assertThat(nestedIfTrue.get("ifFalse").asString()).isEqualTo("0.0005");
+        assertThat(cacheRead.get("ifFalse").asString()).isEqualTo("0.001");
         assertThat(schemaChecker.check(result, "0.48.0")).isEmpty();
     }
 
@@ -774,10 +774,10 @@ class VersionAwareFieldFilterTest {
 
         // then
         JsonNode cacheWrite = result.get("models").get("m1").get("pricing").get("cacheWrite");
-        assertThat(cacheWrite.get("test").get("field").asText()).isEqualTo("tokenCount");
-        assertThat(cacheWrite.get("test").get("operator").asText()).isEqualTo(">");
-        assertThat(cacheWrite.get("ifTrue").asText()).isEqualTo("0.0015");
-        assertThat(cacheWrite.get("ifFalse").asText()).isEqualTo("0.002");
+        assertThat(cacheWrite.get("test").get("field").asString()).isEqualTo("tokenCount");
+        assertThat(cacheWrite.get("test").get("operator").asString()).isEqualTo(">");
+        assertThat(cacheWrite.get("ifTrue").asString()).isEqualTo("0.0015");
+        assertThat(cacheWrite.get("ifFalse").asString()).isEqualTo("0.002");
         assertThat(schemaChecker.check(result, "0.48.0")).isEmpty();
     }
 
@@ -807,7 +807,7 @@ class VersionAwareFieldFilterTest {
         JsonNode result = filter.filterForTargetVersion(config);
 
         // then
-        assertThat(result.get("models").get("m1").get("pricing").get("cacheRead").asText()).isEqualTo("0.0005");
+        assertThat(result.get("models").get("m1").get("pricing").get("cacheRead").asString()).isEqualTo("0.0005");
         assertThat(schemaChecker.check(result, "0.48.0")).isEmpty();
     }
 
@@ -837,7 +837,7 @@ class VersionAwareFieldFilterTest {
         JsonNode result = filter.filterForTargetVersion(config);
 
         // then
-        assertThat(result.get("models").get("m1").get("pricing").get("cacheRead").asText()).isEqualTo("0.0005");
+        assertThat(result.get("models").get("m1").get("pricing").get("cacheRead").asString()).isEqualTo("0.0005");
         assertThat(schemaChecker.check(result, "0.47.0")).isEmpty();
     }
 
@@ -864,11 +864,11 @@ class VersionAwareFieldFilterTest {
 
         // then
         JsonNode pricing = result.get("models").get("m1").get("pricing");
-        assertThat(pricing.get("prompt").get("test").get("field").asText()).isEqualTo("promptTokens");
-        assertThat(pricing.get("prompt").get("test").get("operator").asText()).isEqualTo(">");
-        assertThat(pricing.get("prompt").get("ifTrue").asText()).isEqualTo("0.000006");
-        assertThat(pricing.get("prompt").get("ifFalse").asText()).isEqualTo("0.000003");
-        assertThat(pricing.get("completion").asText()).isEqualTo("0.000015");
+        assertThat(pricing.get("prompt").get("test").get("field").asString()).isEqualTo("promptTokens");
+        assertThat(pricing.get("prompt").get("test").get("operator").asString()).isEqualTo(">");
+        assertThat(pricing.get("prompt").get("ifTrue").asString()).isEqualTo("0.000006");
+        assertThat(pricing.get("prompt").get("ifFalse").asString()).isEqualTo("0.000003");
+        assertThat(pricing.get("completion").asString()).isEqualTo("0.000015");
         assertThat(schemaChecker.check(result, "0.49.0")).isEmpty();
     }
 
@@ -893,8 +893,8 @@ class VersionAwareFieldFilterTest {
 
         // then
         JsonNode pricing = result.get("models").get("m1").get("pricing");
-        assertThat(pricing.get("prompt").asText()).isEqualTo("0.000003");
-        assertThat(pricing.get("completion").asText()).isEqualTo("0.000015");
+        assertThat(pricing.get("prompt").asString()).isEqualTo("0.000003");
+        assertThat(pricing.get("completion").asString()).isEqualTo("0.000015");
         assertThat(schemaChecker.check(result, "0.49.0")).isEmpty();
     }
 
@@ -919,8 +919,8 @@ class VersionAwareFieldFilterTest {
 
         // then
         JsonNode pricing = result.get("models").get("m1").get("pricing");
-        assertThat(pricing.get("prompt").asText()).isEqualTo("0.000003");
-        assertThat(pricing.get("completion").asText()).isEqualTo("0.000015");
+        assertThat(pricing.get("prompt").asString()).isEqualTo("0.000003");
+        assertThat(pricing.get("completion").asString()).isEqualTo("0.000015");
         assertThat(schemaChecker.check(result, "0.48.0")).isEmpty();
     }
 
@@ -944,7 +944,7 @@ class VersionAwareFieldFilterTest {
         JsonNode result = filter.filterForTargetVersion(config);
 
         // then
-        assertThat(result.get("models").get("m1").get("baseUrl").asText()).isEqualTo("http://model.adapter");
+        assertThat(result.get("models").get("m1").get("baseUrl").asString()).isEqualTo("http://model.adapter");
     }
 
     @Test
@@ -978,7 +978,7 @@ class VersionAwareFieldFilterTest {
         assertThat(deploymentInterface.get("features").get("reasoning_efforts"))
                 .isEqualTo(MAPPER.readTree("""
                         ["low", "medium", "high", "xhigh", "max"]"""));
-        assertThat(result.get("models").get("m1").get("baseUrl").asText()).isEqualTo("http://model.adapter");
+        assertThat(result.get("models").get("m1").get("baseUrl").asString()).isEqualTo("http://model.adapter");
     }
 
     @Test
@@ -1059,7 +1059,7 @@ class VersionAwareFieldFilterTest {
         // then
         JsonNode model = result.get("models").get("m1");
         assertThat(model.has("interfaces")).isFalse();
-        assertThat(model.get("endpoint").asText()).isEqualTo("http://model/chat/completions");
+        assertThat(model.get("endpoint").asString()).isEqualTo("http://model/chat/completions");
     }
 
     @Test
@@ -1117,15 +1117,15 @@ class VersionAwareFieldFilterTest {
         mockRealSchema("0.46.0");
         JsonNode kept = filter.filterForTargetVersion(config);
         JsonNode service = kept.get("applications").get("app1").get("external_services").get("service1");
-        assertThat(service.get("display_name").asText()).isEqualTo("Service 1");
-        assertThat(service.get("auth_settings").get("client_id").asText()).isEqualTo("client-id-1");
+        assertThat(service.get("display_name").asString()).isEqualTo("Service 1");
+        assertThat(service.get("auth_settings").get("client_id").asString()).isEqualTo("client-id-1");
 
         // when / then: stripped at 0.45, application kept (still has endpoint)
         mockRealSchema("0.45.0");
         JsonNode stripped = filter.filterForTargetVersion(config);
         JsonNode app = stripped.get("applications").get("app1");
         assertThat(app.has("external_services")).isFalse();
-        assertThat(app.get("endpoint").asText()).isEqualTo("http://app/chat/completions");
+        assertThat(app.get("endpoint").asString()).isEqualTo("http://app/chat/completions");
     }
 
     @Test
@@ -1184,8 +1184,8 @@ class VersionAwareFieldFilterTest {
 
         // then
         JsonNode upstream = result.get("models").get("m1").get("upstreams").get(0);
-        assertThat(upstream.get("baseUrl").asText()).isEqualTo("http://upstream.adapter");
-        assertThat(upstream.get("interfaces").get("openaiChatCompletions").get("endpoint").asText())
+        assertThat(upstream.get("baseUrl").asString()).isEqualTo("http://upstream.adapter");
+        assertThat(upstream.get("interfaces").get("openaiChatCompletions").get("endpoint").asString())
                 .isEqualTo("http://upstream.adapter/v1/chat/completions");
     }
 
@@ -1221,7 +1221,7 @@ class VersionAwareFieldFilterTest {
         JsonNode upstream = upstreams.get(0);
         assertThat(upstream.has("baseUrl")).isFalse();
         assertThat(upstream.has("interfaces")).isFalse();
-        assertThat(upstream.get("endpoint").asText()).isEqualTo("http://upstream.direct/chat/completions");
+        assertThat(upstream.get("endpoint").asString()).isEqualTo("http://upstream.direct/chat/completions");
     }
 
     @Test
@@ -1255,7 +1255,7 @@ class VersionAwareFieldFilterTest {
         // then
         JsonNode upstreams = result.get("models").get("m1").get("upstreams");
         assertThat(upstreams).hasSize(1);
-        assertThat(upstreams.get(0).get("endpoint").asText()).isEqualTo("http://upstream2.direct/chat/completions");
+        assertThat(upstreams.get(0).get("endpoint").asString()).isEqualTo("http://upstream2.direct/chat/completions");
     }
 
     @Test

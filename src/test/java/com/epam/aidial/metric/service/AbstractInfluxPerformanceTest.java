@@ -6,11 +6,11 @@ import com.epam.aidial.metric.web.dto.JsonDataQuery;
 import com.epam.aidial.ql.Engine;
 import com.epam.aidial.ql.LanguageConverter;
 import com.epam.aidial.ql.model.Data;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.ArrayList;

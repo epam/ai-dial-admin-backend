@@ -1,8 +1,8 @@
 package com.epam.aidial.cfg.service.config.transfer;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,11 +47,11 @@ public class VersionAwareSchemaChecker {
         // patternProperties = map-like object: keys are arbitrary, recurse into values
         if (resolvedSchema.has("patternProperties")) {
             JsonNode patternProps = resolvedSchema.get("patternProperties");
-            JsonNode valueSchema = patternProps.elements().hasNext()
-                    ? patternProps.elements().next()
+            JsonNode valueSchema = patternProps.values().iterator().hasNext()
+                    ? patternProps.values().iterator().next()
                     : null;
             if (valueSchema != null) {
-                node.fields().forEachRemaining(e -> {
+                node.properties().iterator().forEachRemaining(e -> {
                     String childPath = path.isEmpty() ? e.getKey() : path + "." + e.getKey();
                     collectViolations(e.getValue(), valueSchema, childPath, root, version, violations);
                 });
@@ -67,7 +67,7 @@ public class VersionAwareSchemaChecker {
 
         Map<String, JsonNode> allowedFields = resolveProperties(resolvedSchema, root);
 
-        Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
+        Iterator<Map.Entry<String, JsonNode>> fields = node.properties().iterator();
         while (fields.hasNext()) {
             Map.Entry<String, JsonNode> entry = fields.next();
             String fieldName = entry.getKey();
@@ -113,7 +113,7 @@ public class VersionAwareSchemaChecker {
         Map<String, JsonNode> props = new HashMap<>();
 
         if (schema.has("properties")) {
-            schema.get("properties").fields()
+            schema.get("properties").properties().iterator()
                     .forEachRemaining(e -> props.put(e.getKey(), e.getValue()));
         }
         if (schema.has("allOf")) {
@@ -141,7 +141,7 @@ public class VersionAwareSchemaChecker {
         if (!schema.has("$ref")) {
             return schema;
         }
-        String ref = schema.get("$ref").asText();
+        String ref = schema.get("$ref").asString();
         if (ref.startsWith("#/definitions/")) {
             String definitionName = ref.substring("#/definitions/".length());
             JsonNode definitions = root.get("definitions");
