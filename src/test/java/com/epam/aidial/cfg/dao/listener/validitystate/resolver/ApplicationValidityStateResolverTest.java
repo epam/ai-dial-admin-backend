@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dao.listener.validitystate.resolver;
 
+import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dao.mapper.ApplicationContainerEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapperImpl;
@@ -12,6 +13,7 @@ import com.epam.aidial.cfg.dao.mapper.ExternalServicesEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.FeaturesEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.LimitEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.MapPropertiesMapperImpl;
+import com.epam.aidial.cfg.dao.mapper.NullPreservingMapPropertiesMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.PropertiesEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ResourceAuthSettingsEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.RoleLimitEntityMapperImpl;
@@ -33,7 +35,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -46,9 +47,10 @@ import java.util.List;
         ResourceAuthSettingsEntityMapperImpl.class,
         DeploymentEntityMapperImpl.class,
         MapPropertiesMapperImpl.class,
+        NullPreservingMapPropertiesMapperImpl.class,
         DeploymentInterfacesEntityMapperImpl.class,
         ExternalServicesEntityMapperImpl.class,
-        ObjectMapper.class,
+        JsonMapperConfiguration.class,
         DependentRouteEntityMapperImpl.class,
         FeaturesEntityMapperImpl.class,
         ValidityStateEntityMapperImpl.class,

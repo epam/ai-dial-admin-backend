@@ -1,7 +1,10 @@
 {
   "applicationProperties": {
     "custom_property_1": "custom_value_1",
-    "custom_property_2": "custom_value_2"
+    "custom_property_2": "custom_value_2",
+    "features": {
+      "timestamp": null
+    }
   },
   "name": "test_application",
   "viewerUrl": "https://viewer.test.com",
