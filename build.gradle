@@ -35,7 +35,7 @@ plugins {
     id "java"
     id 'checkstyle'
     id 'io.freefair.lombok' version '8.0.1'
-    id 'org.springframework.boot' version '4.0.8'
+    id 'org.springframework.boot' version '4.1.1'
 }
 
 group = 'com.epam.aidial'
@@ -109,7 +109,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-    implementation platform('tools.jackson:jackson-bom:3.1.7') // Spring Boot 4.0.8 manages 3.1.5, which has vulnerabilities
+    implementation platform('tools.jackson:jackson-bom:3.1.7') // Spring Boot 4.1.1 manages 3.1.5, which has vulnerabilities
     implementation 'tools.jackson.core:jackson-databind'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-aspectj'
@@ -137,7 +137,7 @@ dependencies {
     implementation 'io.fabric8:kubernetes-client:7.5.2'
 
     implementation 'com.influxdb:influxdb-client-java:7.2.0'
-    implementation 'com.influxdb:influxdb3-java:1.8.0'
+    implementation 'com.influxdb:influxdb3-java:1.11.0'
 
     implementation 'org.apache.commons:commons-csv:1.13.0'
 
@@ -147,7 +147,7 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
 //    implementation 'io.micrometer:micrometer-registry-otlp'
 
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1'
 
     implementation('org.springframework.boot:spring-boot-starter-log4j2') {
         exclude group: 'org.apache.logging.log4j'
