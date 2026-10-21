@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
         @JsonSubTypes.Type(value = AdapterDeploymentInfoDto.class, name = "adapter"),
         @JsonSubTypes.Type(value = ApplicationDeploymentInfoDto.class, name = "application"),
         @JsonSubTypes.Type(value = InterceptorDeploymentInfoDto.class, name = "interceptor"),
-        @JsonSubTypes.Type(value = NimDeploymentInfoDto.class, name = "nim"),
         @JsonSubTypes.Type(value = InferenceDeploymentInfoDto.class, name = "inference"),
 })
 @Data

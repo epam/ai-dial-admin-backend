@@ -14,8 +14,8 @@ import lombok.ToString;
 public class InferenceDeploymentInfoDto extends DeploymentInfoDto {
     private InferenceTask inferenceTask;
 
-    public InferenceDeploymentInfoDto(String id, String name, String url, InferenceTask inferenceTask) {
-        super(id, name, url);
+    public InferenceDeploymentInfoDto(String id, String displayName, String url, InferenceTask inferenceTask) {
+        super(id, displayName, url);
         this.inferenceTask = inferenceTask;
     }
 }
