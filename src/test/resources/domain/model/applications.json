@@ -93,7 +93,10 @@
     },
     "applicationProperties": {
       "debug": true,
-      "maxUsers": 1000
+      "maxUsers": 1000,
+      "features": {
+        "timestamp": null
+      }
     },
     "source": {
       "$type": "schema",
