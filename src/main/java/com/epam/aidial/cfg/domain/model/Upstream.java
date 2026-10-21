@@ -27,12 +27,6 @@ public class Upstream {
     @JsonSerialize(using = StringToJsonSerializer.class)
     private String extraData;
 
-    /**
-     * Capacity share of this upstream. DIAL Core treats zero or negative as "upstream disabled" and routes no
-     * traffic to it, so an upstream that simply does not spell out a weight has to arrive here as Core's
-     * documented default of 1: leaving it at the primitive's own 0 would silently disable the deployment.
-     * {@code null} is skipped for the same reason - it would otherwise be coerced to 0.
-     */
     @JsonSetter(nulls = Nulls.SKIP)
     private int weight = 1;
 
