@@ -27,7 +27,8 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring", uses = {
         DeploymentEntityMapper.class, MapPropertiesMapper.class, DependentRouteEntityMapper.class,
         FeaturesEntityMapper.class, ValidityStateEntityMapper.class, DeploymentInterfacesEntityMapper.class,
-        ExternalServicesEntityMapper.class, UriMapper.class, PropertiesEntityMapper.class
+        ExternalServicesEntityMapper.class, UriMapper.class, PropertiesEntityMapper.class,
+        NullPreservingMapPropertiesMapper.class
 })
 public abstract class ApplicationEntityMapper {
 
@@ -38,10 +39,12 @@ public abstract class ApplicationEntityMapper {
 
     @Mapping(target = "source", source = "entity", qualifiedByName = "mapSource")
     @Mapping(target = "applicationTypeSchemaId", ignore = true)
+    @Mapping(target = "applicationProperties", qualifiedByName = NullPreservingMapPropertiesMapper.FROM_STRING)
     public abstract Application toDomain(ApplicationEntity entity);
 
     @Mapping(target = "source", source = "entity", qualifiedByName = "mapSource")
     @Mapping(target = "applicationTypeSchemaId", ignore = true)
+    @Mapping(target = "applicationProperties", qualifiedByName = NullPreservingMapPropertiesMapper.FROM_STRING)
     @Mapping(target = "deployment.roleLimits", ignore = true)
     public abstract Application toDomainWithoutRoleLimits(ApplicationEntity entity);
 
@@ -116,6 +119,7 @@ public abstract class ApplicationEntityMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "validityState", ignore = true)
+    @Mapping(target = "applicationProperties", qualifiedByName = NullPreservingMapPropertiesMapper.TO_STRING)
     protected abstract ApplicationEntity update(Application domain, @MappingTarget ApplicationEntity entity);
 
 }

@@ -111,6 +111,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1516,6 +1517,30 @@ public abstract class ConfigTransferFunctionalTest {
                         Assertions.assertThat(((InterceptorRunnerSource) interceptors.get("interceptor2").getSource()).getRunnerName()).isEqualTo("testRunner");
                     });
         });
+    }
+
+    @Test
+    void testExport_AdminFormatApplication_KeepsNullInsideApplicationProperties() throws IOException {
+        // given
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.APPLICATION));
+
+        Map<String, Object> features = new HashMap<>();
+        features.put("timestamp", null);
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationDto.setApplicationProperties(Map.of("features", features));
+        applicationFacade.createApplication(applicationDto);
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // then
+        ExportConfig result = extractConfigFromZip(streamingResponseBody);
+        Assertions.assertThat(result).isNotNull().satisfies(config ->
+                Assertions.assertThat(config.getApplications()).containsOnlyKeys(applicationDto.getName())
+                        .satisfies(apps -> Assertions.assertThat(apps.get(applicationDto.getName()).getApplicationProperties())
+                                .isEqualTo(Map.of("features", features))));
     }
 
     @Test
