@@ -115,7 +115,10 @@
       "max_retry_attempts": 3,
       "application_properties": {
         "debug": true,
-        "maxUsers": 1000
+        "maxUsers": 1000,
+        "features": {
+          "timestamp": null
+        }
       },
       "application_type_schema_id": "https://example.com/schema.json",
       "author": "test-author",
