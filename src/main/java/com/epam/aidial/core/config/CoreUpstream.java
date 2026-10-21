@@ -5,7 +5,8 @@ import com.epam.aidial.core.config.databind.JsonToStringDeserializer;
 import com.epam.aidial.core.config.databind.StringToJsonSerializer;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import tools.jackson.databind.annotation.JsonDeserialize;
@@ -14,7 +15,6 @@ import tools.jackson.databind.annotation.JsonSerialize;
 import java.util.Map;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class CoreUpstream {
 
@@ -32,6 +32,7 @@ public class CoreUpstream {
     @JsonAlias({"extraData", "dial:extraData"})
     private String extraData;
 
+    @JsonSetter(nulls = Nulls.SKIP)
     @JsonAlias({"weight", "dial:weight"})
     private int weight = 1;
 
