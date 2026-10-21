@@ -1,6 +1,7 @@
 package com.epam.aidial.core.config;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import tools.jackson.databind.ObjectMapper;
@@ -31,15 +32,17 @@ class CoreUpstreamTest {
         mappers.forEach(mapper -> assertThat(mapper.readValue(json, CoreUpstream.class).getWeight()).isEqualTo(5));
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"{" + ENDPOINT + ",\"weight\":0}"})
-    void deserialize_explicitZeroWeight_isKept(String json) {
+    @Test
+    void deserialize_explicitZeroWeight_isKept() {
+        String json = "{" + ENDPOINT + ",\"weight\":0}";
+
         mappers.forEach(mapper -> assertThat(mapper.readValue(json, CoreUpstream.class).getWeight()).isZero());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"{" + ENDPOINT + "}"})
-    void deserialize_absentProperties_keepOtherDefaults(String json) {
+    @Test
+    void deserialize_absentProperties_keepOtherDefaults() {
+        String json = "{" + ENDPOINT + "}";
+
         mappers.forEach(mapper -> {
             CoreUpstream upstream = mapper.readValue(json, CoreUpstream.class);
             assertThat(upstream.getAuthType()).isEqualTo(CoreUpstreamAuthType.API_KEY);

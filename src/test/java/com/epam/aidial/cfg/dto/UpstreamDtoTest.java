@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import tools.jackson.databind.ObjectMapper;
@@ -19,15 +20,17 @@ class UpstreamDtoTest {
         assertThat(mapper.readValue(json, UpstreamDto.class).getWeight()).isEqualTo(1);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"{" + ENDPOINT + ",\"weight\":5}"})
-    void deserialize_explicitWeight_isKept(String json) {
+    @Test
+    void deserialize_explicitWeight_isKept() {
+        String json = "{" + ENDPOINT + ",\"weight\":5}";
+
         assertThat(mapper.readValue(json, UpstreamDto.class).getWeight()).isEqualTo(5);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"{" + ENDPOINT + ",\"weight\":0}"})
-    void deserialize_explicitZeroWeight_isKept(String json) {
+    @Test
+    void deserialize_explicitZeroWeight_isKept() {
+        String json = "{" + ENDPOINT + ",\"weight\":0}";
+
         assertThat(mapper.readValue(json, UpstreamDto.class).getWeight()).isZero();
     }
 }
