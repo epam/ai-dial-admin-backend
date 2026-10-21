@@ -17,7 +17,6 @@ class DeploymentInfoDtoTest {
             "adapter, com.epam.aidial.cfg.client.dto.AdapterDeploymentInfoDto",
             "application, com.epam.aidial.cfg.client.dto.ApplicationDeploymentInfoDto",
             "interceptor, com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto",
-            "nim, com.epam.aidial.cfg.client.dto.NimDeploymentInfoDto",
             "inference, com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto"
     })
     void deserialize_deploymentManagerInternalResponse(String type, Class<?> expectedClass) {
