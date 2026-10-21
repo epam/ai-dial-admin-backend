@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.domain.model;
 
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.source.ApplicationSource;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -42,6 +43,7 @@ public class Application extends RoleBased {
     private Long updatedAt;
     private List<String> dependencies;
     private Features features;
+    @JsonInclude(value = JsonInclude.Include.NON_NULL)
     private Map<String, Object> applicationProperties;
     private ApplicationSource source;
     private String viewerUrl;

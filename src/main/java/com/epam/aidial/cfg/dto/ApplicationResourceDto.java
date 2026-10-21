@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.source.ApplicationResourceSourceDto;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.Valid;
 import lombok.Data;
 
@@ -46,6 +47,7 @@ public class ApplicationResourceDto {
     private List<RouteResourceDto> routes;
     @Valid
     private ApplicationResourceSourceDto source;
+    @JsonInclude(value = JsonInclude.Include.NON_NULL)
     private Map<String, Object> applicationProperties;
     private ValidityStateResourceDto validityState;
     private McpResourceDto mcp;

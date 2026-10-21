@@ -39,6 +39,7 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -139,6 +140,20 @@ public abstract class ApplicationFunctionalTest {
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
         Assertions.assertNull(actual.getEndpoint());
         Assertions.assertEquals(applicationDto.getInterfaces(), actual.getInterfaces());
+    }
+
+    @Test
+    public void shouldPreserveNullInsideApplicationProperties() {
+        initRoles();
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        Map<String, Object> features = new HashMap<>();
+        features.put("timestamp", null);
+        applicationDto.setApplicationProperties(Map.of("features", features));
+        applicationFacade.createApplication(applicationDto);
+
+        ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
+
+        Assertions.assertEquals(Map.of("features", features), actual.getApplicationProperties());
     }
 
     @Test
