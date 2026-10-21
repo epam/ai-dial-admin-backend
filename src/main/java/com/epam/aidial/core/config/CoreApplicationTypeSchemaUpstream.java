@@ -4,7 +4,8 @@ import com.epam.aidial.cfg.utils.SecretUtils;
 import com.epam.aidial.core.config.databind.JsonToStringDeserializer;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import tools.jackson.databind.annotation.JsonDeserialize;
@@ -14,7 +15,6 @@ import tools.jackson.databind.annotation.JsonDeserialize;
     @see com.epam.aidial.core.config.CoreUpstream
  */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class CoreApplicationTypeSchemaUpstream {
 
@@ -31,6 +31,7 @@ public class CoreApplicationTypeSchemaUpstream {
     @JsonProperty("dial:extraData")
     private String extraData;
 
+    @JsonSetter(nulls = Nulls.SKIP)
     @JsonAlias({"weight", "dial:weight"})
     @JsonProperty("dial:weight")
     private int weight = 1;
