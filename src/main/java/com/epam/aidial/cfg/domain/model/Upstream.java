@@ -4,6 +4,8 @@ import com.epam.aidial.cfg.utils.SecretUtils;
 import com.epam.aidial.core.config.databind.JsonToStringDeserializer;
 import com.epam.aidial.core.config.databind.StringToJsonSerializer;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import lombok.Data;
 import tools.jackson.databind.annotation.JsonDeserialize;
 import tools.jackson.databind.annotation.JsonSerialize;
@@ -25,7 +27,14 @@ public class Upstream {
     @JsonSerialize(using = StringToJsonSerializer.class)
     private String extraData;
 
-    private int weight;
+    /**
+     * Capacity share of this upstream. DIAL Core treats zero or negative as "upstream disabled" and routes no
+     * traffic to it, so an upstream that simply does not spell out a weight has to arrive here as Core's
+     * documented default of 1: leaving it at the primitive's own 0 would silently disable the deployment.
+     * {@code null} is skipped for the same reason - it would otherwise be coerced to 0.
+     */
+    @JsonSetter(nulls = Nulls.SKIP)
+    private int weight = 1;
 
     private int tier;
 
