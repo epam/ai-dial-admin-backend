@@ -16,8 +16,8 @@ public class McpDeploymentInfoDto extends DeploymentInfoDto {
     @NotNull
     private McpTransport transport = McpTransport.HTTP_STREAMING;
 
-    public McpDeploymentInfoDto(String id, String name, String url, McpTransport transport) {
-        super(id, name, url);
+    public McpDeploymentInfoDto(String id, String displayName, String url, McpTransport transport) {
+        super(id, displayName, url);
         this.transport = transport;
     }
 

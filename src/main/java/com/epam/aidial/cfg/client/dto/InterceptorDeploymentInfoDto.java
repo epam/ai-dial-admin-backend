@@ -4,8 +4,8 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 public class InterceptorDeploymentInfoDto extends DeploymentInfoDto {
-    public InterceptorDeploymentInfoDto(String id, String name, String url) {
-        super(id, name, url);
+    public InterceptorDeploymentInfoDto(String id, String displayName, String url) {
+        super(id, displayName, url);
     }
 }
 

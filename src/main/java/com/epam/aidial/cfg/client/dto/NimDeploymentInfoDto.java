@@ -4,8 +4,8 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 public class NimDeploymentInfoDto extends DeploymentInfoDto {
-    public NimDeploymentInfoDto(String id, String name, String url) {
-        super(id, name, url);
+    public NimDeploymentInfoDto(String id, String displayName, String url) {
+        super(id, displayName, url);
     }
 }
 
