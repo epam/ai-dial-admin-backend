@@ -39,7 +39,7 @@ plugins {
 }
 
 group = 'com.epam.aidial'
-version = "0.22.3"
+version = "0.22.4"
 
 java {
     toolchain {
