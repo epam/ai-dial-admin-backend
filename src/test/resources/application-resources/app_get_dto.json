@@ -30,7 +30,10 @@
     "instructions": "",
     "temperature": 1,
     "web_api_toolset": [],
-    "mcp_toolset": []
+    "mcp_toolset": [],
+    "features": {
+      "timestamp": null
+    }
   },
   "routes": [],
   "mcp": {

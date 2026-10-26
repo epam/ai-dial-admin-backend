@@ -43,8 +43,23 @@ public class JsonMapperConfiguration {
         return createCoreJsonMapper();
     }
 
+    @Bean
+    public JsonMapper nullPreservingJsonMapper() {
+        return createNullPreservingJsonMapper();
+    }
+
     public static JsonMapper createJsonMapper() {
         return createDefaultJsonMapperBuilder()
+                .build();
+    }
+
+    /**
+     * Same as {@link #createJsonMapper()}, but never drops nulls: neither null properties nor null values inside maps.
+     * For payloads where an explicit null is meaningful, e.g. free-form properties.
+     */
+    public static JsonMapper createNullPreservingJsonMapper() {
+        return createDefaultJsonMapperBuilder()
+                .changeDefaultPropertyInclusion(inclusion -> JsonInclude.Value.construct(JsonInclude.Include.ALWAYS, JsonInclude.Include.ALWAYS))
                 .build();
     }
 

@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
-import com.epam.aidial.cfg.client.dto.NimDeploymentInfoDto;
 import com.epam.aidial.cfg.dao.model.AdapterContainerEntity;
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationContainerEntity;
@@ -150,7 +149,7 @@ class ContainerEndpointResolverTest {
         ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH, RESPONSES_PATH);
         model.setSource(containerSource);
 
-        DeploymentInfoDto deploymentInfo = new NimDeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
         deploymentInfo.setUrl(CONTAINER_URL);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
@@ -175,7 +174,7 @@ class ContainerEndpointResolverTest {
         containerEntity.setResponsesEndpointPath(RESPONSES_PATH);
         modelEntity.setModelContainer(containerEntity);
 
-        DeploymentInfoDto deploymentInfo = new NimDeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
         deploymentInfo.setUrl(CONTAINER_URL);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
@@ -601,7 +600,7 @@ class ContainerEndpointResolverTest {
         ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, path, responsesPath);
         model.setSource(containerSource);
 
-        DeploymentInfoDto deploymentInfo = new NimDeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
         deploymentInfo.setUrl(url);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);

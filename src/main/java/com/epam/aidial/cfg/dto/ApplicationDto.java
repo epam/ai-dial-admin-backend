@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.dto.route.DependentRouteDto;
 import com.epam.aidial.cfg.dto.source.ApplicationSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -63,6 +64,7 @@ public class ApplicationDto extends RoleBasedDto {
 
     private FunctionDto function;
 
+    @JsonInclude(value = JsonInclude.Include.NON_NULL)
     private Map<String, Object> applicationProperties = new HashMap<>();
 
     private ApplicationSourceDto source;
