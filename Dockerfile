@@ -20,11 +20,13 @@ WORKDIR /app
 # TODO: remove explicit libexpat pinning once eclipse-temurin:21-jre-alpine ships with libexpat>=2.9.0-r0 (CVE-2026-77214/102633)
 # TODO: remove explicit libpng pinning once eclipse-temurin:21-jre-alpine ships with libpng>=1.6.59-r0 (CVE-2026-46675)
 # TODO: remove explicit zlib pinning once eclipse-temurin:21-jre-alpine ships with zlib>=1.3.2-r1 (CVE-2026-85091)
+# TODO: remove explicit brotli-libs pinning once eclipse-temurin:21-jre-alpine ships with brotli-libs>=1.2.1-r0 (CVE-2026-111497)
 RUN apk add --no-cache 'libcrypto3>=3.5.8-r0' 'libssl3>=3.5.8-r0' 'openssl>=3.5.8-r0' && \
     apk add --no-cache 'p11-kit>=0.26.2-r0' 'p11-kit-trust>=0.26.2-r0' && \
     apk add --no-cache 'libexpat>=2.9.0-r0' && \
     apk add --no-cache 'libpng>=1.6.59-r0' && \
     apk add --no-cache 'zlib>=1.3.2-r1' && \
+    apk add --no-cache 'brotli-libs>=1.2.1-r0' && \
     apk add --no-cache bash && \
     adduser -u 1001 -D appuser && \
     mkdir -p /app/data && \
