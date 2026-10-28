@@ -101,7 +101,7 @@ dependencies {
     implementation 'software.amazon.awssdk:secretsmanager:2.30.27'
     implementation 'com.google.cloud:google-cloud-secretmanager:2.59.0'
     implementation 'com.google.cloud.sql:postgres-socket-factory:1.28.0'
-    implementation 'com.google.guava:guava:33.4.8-jre'
+    implementation 'com.google.guava:guava:33.7.2-jre'
     implementation("org.jsoup:jsoup:1.23.2")
     implementation 'io.modelcontextprotocol.sdk:mcp:2.1.0'
 
@@ -207,6 +207,9 @@ dependencies {
             because("previous versions have vulnerabilities")
         }
         implementation("io.vertx:vertx-auth-common:4.5.27") {
+            because("previous versions have vulnerabilities")
+        }
+        checkstyle ('com.google.guava:guava:33.7.2-jre') {
             because("previous versions have vulnerabilities")
         }
         checkstyle ('org.apache.commons:commons-lang3:3.18.0') {
