@@ -14,8 +14,8 @@ import com.epam.aidial.ql.model.Sort;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
