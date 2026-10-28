@@ -33,6 +33,7 @@ public class VersionAwareFieldFilter {
     private static final List<String> DEPLOYMENT_ENTITY_TYPES = List.of("models", "applications", "interceptors");
     private static final String UPSTREAMS_KEY = "upstreams";
     private static final String UPSTREAM_INTERFACE_DEFINITION_KEY = "UpstreamInterface";
+    private static final String UPSTREAM_AUTH_CONFIG_DEFINITION_KEY = "UpstreamAuthConfig";
     private static final List<String> UPSTREAM_ENTITY_TYPES = List.of("models", "routes");
 
     private final CoreConfigVersionService coreConfigVersionService;
@@ -53,7 +54,7 @@ public class VersionAwareFieldFilter {
             JsonNode configNode = objectMapper.readTree(configJson);
             JsonNode filteredNode = filterNodeBySchema(configNode, schema);
             removeDeploymentsLeftWithoutRouting(configNode, filteredNode, schema, version);
-            removeUpstreamsLeftWithoutEndpoint(configNode, filteredNode, schema, version);
+            removeUnsupportedUpstreams(configNode, filteredNode, schema, version);
             return filteredNode;
         } catch (Exception e) {
             log.error("Failed to filter config for version: {}", version, e);
@@ -113,17 +114,25 @@ public class VersionAwareFieldFilter {
     }
 
     /**
-     * Removes an upstream whose only endpoint source was the (0.48.0+) {@code baseUrl}/{@code interfaces}
-     * pair after it has been stripped by a target schema that does not support it (Core &lt; 0.48.0). Such
-     * an upstream would be exported with no endpoint at all and would be invalid for the target Core
-     * version — mirrors {@link #removeDeploymentsLeftWithoutRouting} one level down, on {@code upstreams}
-     * entries of models and routes rather than on the deployments themselves.
+     * Removes upstreams that the target Core version can't represent once the target schema has stripped them:
+     * <ul>
+     *   <li>an upstream whose only endpoint source was the (0.48.0+) {@code baseUrl}/{@code interfaces}
+     *   pair (Core &lt; 0.48.0) - it would be exported with no endpoint at all and would be invalid for the
+     *   target Core version;</li>
+     *   <li>an upstream whose {@code authType} is {@code CUSTOM_HEADER} (0.50.0+, object form) when the target
+     *   has no {@code UpstreamAuthConfig} (Core &lt; 0.50.0) - it can't be parsed there, and dropping the
+     *   {@code authType} would silently send the key in the wrong header.</li>
+     * </ul>
+     * Mirrors {@link #removeDeploymentsLeftWithoutRouting} one level down, on {@code upstreams} entries of
+     * models and routes rather than on the deployments themselves.
      */
-    private void removeUpstreamsLeftWithoutEndpoint(JsonNode originalNode, JsonNode filteredNode,
-                                                    JsonNode schema, String version) {
+    private void removeUnsupportedUpstreams(JsonNode originalNode, JsonNode filteredNode,
+                                            JsonNode schema, String version) {
         JsonNode definitions = schema.get("definitions");
-        if (definitions != null && definitions.has(UPSTREAM_INTERFACE_DEFINITION_KEY)) {
-            // Target version supports Upstream.interfaces/baseUrl - nothing is stripped
+        boolean supportsInterfaces = definitions != null && definitions.has(UPSTREAM_INTERFACE_DEFINITION_KEY);
+        boolean supportsAuthConfig = definitions != null && definitions.has(UPSTREAM_AUTH_CONFIG_DEFINITION_KEY);
+        if (supportsInterfaces && supportsAuthConfig) {
+            // Target version supports Upstream.interfaces/baseUrl and Upstream.authType object form - nothing is stripped
             return;
         }
 
@@ -143,14 +152,15 @@ public class VersionAwareFieldFilter {
                 if (filteredEntity == null) {
                     continue;
                 }
-                removeUpstreamsWithoutEndpoint(entityType, name, version,
+                removeUnsupportedUpstreams(entityType, name, version, supportsInterfaces, supportsAuthConfig,
                         entity.getValue().get(UPSTREAMS_KEY), filteredEntity.get(UPSTREAMS_KEY));
             }
         }
     }
 
-    private void removeUpstreamsWithoutEndpoint(String entityType, String entityName, String version,
-                                                JsonNode originalUpstreams, JsonNode filteredUpstreams) {
+    private void removeUnsupportedUpstreams(String entityType, String entityName, String version,
+                                            boolean supportsInterfaces, boolean supportsAuthConfig,
+                                            JsonNode originalUpstreams, JsonNode filteredUpstreams) {
         if (originalUpstreams == null || !originalUpstreams.isArray()
                 || !(filteredUpstreams instanceof ArrayNode filteredArray)
                 || originalUpstreams.size() != filteredArray.size()) {
@@ -159,9 +169,17 @@ public class VersionAwareFieldFilter {
 
         for (int i = originalUpstreams.size() - 1; i >= 0; i--) {
             JsonNode originalUpstream = originalUpstreams.get(i);
+            if (!supportsAuthConfig && hasCustomHeaderAuthType(originalUpstream)) {
+                log.warn("Skipped upstreams[{}] on {} '{}' on export to Core version {}: its authType "
+                                + "'CUSTOM_HEADER' is not supported by the target version",
+                        i, entityType, entityName, version);
+                filteredArray.remove(i);
+                continue;
+            }
+
             boolean hadBaseUrlOrInterfaces = hasNonEmptyField(originalUpstream, "baseUrl")
                     || hasNonEmptyField(originalUpstream, "interfaces");
-            if (!hadBaseUrlOrInterfaces) {
+            if (supportsInterfaces || !hadBaseUrlOrInterfaces) {
                 continue;
             }
             JsonNode filteredUpstream = filteredArray.get(i);
@@ -173,6 +191,15 @@ public class VersionAwareFieldFilter {
                 filteredArray.remove(i);
             }
         }
+    }
+
+    private boolean hasCustomHeaderAuthType(JsonNode upstream) {
+        JsonNode authType = upstream.get("authType");
+        if (authType == null || !authType.isObject()) {
+            return false;
+        }
+        JsonNode type = authType.get("type");
+        return type != null && type.isTextual() && "CUSTOM_HEADER".equalsIgnoreCase(type.asString());
     }
 
     private boolean hasNonEmptyField(JsonNode node, String fieldName) {
