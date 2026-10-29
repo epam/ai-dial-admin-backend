@@ -35,7 +35,7 @@ plugins {
     id "java"
     id 'checkstyle'
     id 'io.freefair.lombok' version '8.0.1'
-    id 'org.springframework.boot' version '4.0.8'
+    id 'org.springframework.boot' version '4.1.1'
 }
 
 group = 'com.epam.aidial'
@@ -101,7 +101,7 @@ dependencies {
     implementation 'software.amazon.awssdk:secretsmanager:2.30.27'
     implementation 'com.google.cloud:google-cloud-secretmanager:2.59.0'
     implementation 'com.google.cloud.sql:postgres-socket-factory:1.28.0'
-    implementation 'com.google.guava:guava:33.4.8-jre'
+    implementation 'com.google.guava:guava:33.7.2-jre'
     implementation("org.jsoup:jsoup:1.23.2")
     implementation 'io.modelcontextprotocol.sdk:mcp:2.1.0'
 
@@ -109,7 +109,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-    implementation platform('tools.jackson:jackson-bom:3.1.7') // Spring Boot 4.0.8 manages 3.1.5, which has vulnerabilities
+    implementation platform('tools.jackson:jackson-bom:3.1.7') // Spring Boot 4.1.1 manages 3.1.5, which has vulnerabilities
     implementation 'tools.jackson.core:jackson-databind'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-aspectj'
@@ -137,17 +137,17 @@ dependencies {
     implementation 'io.fabric8:kubernetes-client:7.5.2'
 
     implementation 'com.influxdb:influxdb-client-java:7.2.0'
-    implementation 'com.influxdb:influxdb3-java:1.8.0'
+    implementation 'com.influxdb:influxdb3-java:1.11.0'
 
     implementation 'org.apache.commons:commons-csv:1.13.0'
 
-    implementation platform('io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.28.1')
-    implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter:2.28.1'
+    implementation platform('io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.33.1')
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter:2.33.1'
 
     implementation 'io.micrometer:micrometer-registry-prometheus'
 //    implementation 'io.micrometer:micrometer-registry-otlp'
 
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1'
 
     implementation('org.springframework.boot:spring-boot-starter-log4j2') {
         exclude group: 'org.apache.logging.log4j'
@@ -157,7 +157,7 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-jul:2.26.1'
     implementation 'io.opentelemetry:opentelemetry-sdk'
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
-    implementation 'io.opentelemetry.instrumentation:opentelemetry-log4j-appender-2.17:2.28.1-alpha'
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-log4j-appender-2.17:2.33.1-alpha'
 
     implementation project(':query-language')
 
@@ -183,6 +183,7 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers-postgresql'
     testImplementation 'org.testcontainers:testcontainers-mssqlserver'
     testImplementation 'org.testcontainers:testcontainers-influxdb'
+    testImplementation 'io.opentelemetry:opentelemetry-sdk-testing'
 
     constraints {
         implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.3') {
@@ -207,6 +208,9 @@ dependencies {
             because("previous versions have vulnerabilities")
         }
         implementation("io.vertx:vertx-auth-common:4.5.27") {
+            because("previous versions have vulnerabilities")
+        }
+        checkstyle ('com.google.guava:guava:33.7.2-jre') {
             because("previous versions have vulnerabilities")
         }
         checkstyle ('org.apache.commons:commons-lang3:3.18.0') {

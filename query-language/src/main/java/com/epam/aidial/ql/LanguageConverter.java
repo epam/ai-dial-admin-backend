@@ -48,8 +48,8 @@ import com.epam.aidial.ql.model.impl.SortImpl;
 import com.epam.aidial.ql.model.impl.TupleImpl;
 import com.epam.aidial.ql.model.impl.UnionAllImpl;
 import org.apache.commons.lang3.NotImplementedException;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
