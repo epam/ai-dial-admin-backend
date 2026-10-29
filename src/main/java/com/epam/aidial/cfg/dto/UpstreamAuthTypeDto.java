@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.dto;
 public enum UpstreamAuthTypeDto {
 
     API_KEY,
-    BEARER
+    BEARER,
+    CUSTOM_HEADER
 
 }

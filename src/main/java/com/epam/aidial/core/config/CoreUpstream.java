@@ -67,12 +67,13 @@ public class CoreUpstream {
 
     /**
      * HTTP header/scheme used to carry {@link #key} to this upstream on the route path. API_KEY (default)
-     * sends it as {@code API-KEY: <key>}; BEARER sends it as {@code Authorization: Bearer <key>}.
-     * Note: BEARER requires {@link #key} to be present for top-level routes (enforced by Core validation).
+     * sends it as {@code API-KEY: <key>}; BEARER sends it as {@code Authorization: Bearer <key>};
+     * CUSTOM_HEADER sends it as {@code <headerName>: <key>}.
+     * Note: BEARER and CUSTOM_HEADER require {@link #key} to be present for top-level routes.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonAlias({"authType", "auth_type", "dial:authType"})
-    private CoreUpstreamAuthType authType = CoreUpstreamAuthType.API_KEY; // 0.49.0
+    private CoreUpstreamAuthConfig authType = CoreUpstreamAuthConfig.of(CoreUpstreamAuthType.API_KEY); // 0.49.0, type changed to CoreUpstreamAuthConfig in 0.50.0
 
     public String toString() {
         return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint

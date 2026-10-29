@@ -1284,6 +1284,117 @@ class VersionAwareFieldFilterTest {
         assertThat(upstreams).isEmpty();
     }
 
+    @Test
+    void filterForTargetVersion_upstreamAuthTypeCustomHeaderAndPlainTypesKeptAt050() throws IOException {
+        // given
+        mockRealSchema("0.50.0");
+        VersionAwareSchemaChecker schemaChecker = new VersionAwareSchemaChecker(schemaLoader);
+        Config config = MAPPER.readValue("""
+                {
+                  "routes": {
+                    "r1": {
+                      "upstreams": [
+                        {"endpoint": "http://upstream1", "key": "k1", "authType": {"type": "CUSTOM_HEADER", "headerName": "X-Api-Token"}},
+                        {"endpoint": "http://upstream2", "key": "k2", "authType": "BEARER"},
+                        {"endpoint": "http://upstream3"}
+                      ]
+                    }
+                  },
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "upstreams": [
+                        {"endpoint": "http://upstream1", "key": "k1", "authType": {"type": "CUSTOM_HEADER", "headerName": "X-Api-Token"}}
+                      ]
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode routeUpstreams = result.get("routes").get("r1").get("upstreams");
+        assertThat(routeUpstreams).hasSize(3);
+        assertThat(routeUpstreams.get(0).get("authType").get("type").asString()).isEqualToIgnoringCase("CUSTOM_HEADER");
+        assertThat(routeUpstreams.get(0).get("authType").get("headerName").asString()).isEqualTo("X-Api-Token");
+        assertThat(routeUpstreams.get(1).get("authType").asString()).isEqualToIgnoringCase("BEARER");
+        assertThat(routeUpstreams.get(2).get("authType").asString()).isEqualToIgnoringCase("API_KEY");
+        assertThat(result.get("models").get("m1").get("upstreams")).hasSize(1);
+        assertThat(schemaChecker.check(result, "0.50.0")).isEmpty();
+    }
+
+    @Test
+    void filterForTargetVersion_upstreamAuthTypeCustomHeaderSkippedAt049() throws IOException {
+        // given
+        mockRealSchema("0.49.0");
+        VersionAwareSchemaChecker schemaChecker = new VersionAwareSchemaChecker(schemaLoader);
+        Config config = MAPPER.readValue("""
+                {
+                  "routes": {
+                    "r1": {
+                      "upstreams": [
+                        {"endpoint": "http://upstream1", "key": "k1", "authType": {"type": "CUSTOM_HEADER", "headerName": "X-Api-Token"}},
+                        {"endpoint": "http://upstream2", "key": "k2", "authType": "BEARER"},
+                        {"endpoint": "http://upstream3"}
+                      ]
+                    }
+                  },
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "upstreams": [
+                        {"endpoint": "http://upstream1", "key": "k1", "authType": {"type": "CUSTOM_HEADER", "headerName": "X-Api-Token"}},
+                        {"endpoint": "http://upstream2", "key": "k2"}
+                      ]
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode routeUpstreams = result.get("routes").get("r1").get("upstreams");
+        assertThat(routeUpstreams).hasSize(2);
+        assertThat(routeUpstreams.get(0).get("endpoint").asString()).isEqualTo("http://upstream2");
+        assertThat(routeUpstreams.get(0).get("authType").asString()).isEqualToIgnoringCase("BEARER");
+        assertThat(routeUpstreams.get(1).get("endpoint").asString()).isEqualTo("http://upstream3");
+        JsonNode modelUpstreams = result.get("models").get("m1").get("upstreams");
+        assertThat(modelUpstreams).hasSize(1);
+        assertThat(modelUpstreams.get(0).get("endpoint").asString()).isEqualTo("http://upstream2");
+        assertThat(schemaChecker.check(result, "0.49.0")).isEmpty();
+    }
+
+    @Test
+    void filterForTargetVersion_customHeaderAndBaseUrlOnlyUpstreamsBothSkippedBeforeSupport() throws IOException {
+        // given
+        mockRealSchema("0.47.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "routes": {
+                    "r1": {
+                      "upstreams": [
+                        {"endpoint": "http://upstream1", "key": "k1", "authType": {"type": "CUSTOM_HEADER", "headerName": "X-Api-Token"}},
+                        {"base_url": "http://upstream.adapter"},
+                        {"endpoint": "http://upstream3"}
+                      ]
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode upstreams = result.get("routes").get("r1").get("upstreams");
+        assertThat(upstreams).hasSize(1);
+        assertThat(upstreams.get(0).get("endpoint").asString()).isEqualTo("http://upstream3");
+    }
+
     private void mockRealSchema(String version) throws IOException {
         JsonNode schema = loadRealSchema(version);
         when(coreConfigVersionService.getVersionForExport()).thenReturn(version);

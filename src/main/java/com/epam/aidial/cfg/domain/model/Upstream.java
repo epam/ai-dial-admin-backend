@@ -50,10 +50,11 @@ public class Upstream {
 
     /**
      * HTTP header/scheme used to carry {@link #key} to this upstream on the route path. API_KEY (default)
-     * sends it as {@code API-KEY: <key>}; BEARER sends it as {@code Authorization: Bearer <key>}.
+     * sends it as {@code API-KEY: <key>}; BEARER sends it as {@code Authorization: Bearer <key>};
+     * CUSTOM_HEADER sends it as {@code <headerName>: <key>}.
      */
     @JsonAlias({"authType", "auth_type"})
-    private UpstreamAuthType authType = UpstreamAuthType.API_KEY;
+    private UpstreamAuthConfig authType = UpstreamAuthConfig.of(UpstreamAuthType.API_KEY);
 
     public String toString() {
         return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint
