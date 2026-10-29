@@ -183,6 +183,7 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers-postgresql'
     testImplementation 'org.testcontainers:testcontainers-mssqlserver'
     testImplementation 'org.testcontainers:testcontainers-influxdb'
+    testImplementation 'io.opentelemetry:opentelemetry-sdk-testing'
 
     constraints {
         implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.3') {
