@@ -16,13 +16,4 @@ public class CoreShareResourceLimit {
     @JsonAlias({"invitationTtl", "invitation_ttl"})
     Long invitationTtl = -1L;
 
-    public CoreShareResourceLimit() {
-
-    }
-
-    public CoreShareResourceLimit(int maxAcceptedUsers, long invitationTtl) {
-        this.maxAcceptedUsers = maxAcceptedUsers;
-        this.invitationTtl = invitationTtl;
-    }
-
 }

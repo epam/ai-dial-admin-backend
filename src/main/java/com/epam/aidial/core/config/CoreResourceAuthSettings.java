@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.utils.SecretUtils;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +17,7 @@ import java.util.List;
 
 @Data
 @Builder
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor
 @Accessors(chain = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)

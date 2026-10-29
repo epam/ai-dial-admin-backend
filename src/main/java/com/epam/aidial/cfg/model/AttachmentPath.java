@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.model;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,8 +11,8 @@ import java.util.List;
 
 @Data
 @Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor
-@AllArgsConstructor
 public class AttachmentPath {
     @Builder.Default
     private List<String> requestBody = new ArrayList<>();

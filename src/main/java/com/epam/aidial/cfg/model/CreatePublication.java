@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.model;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +11,7 @@ import java.util.List;
 
 @Data
 @Builder
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor
 public class CreatePublication {
 

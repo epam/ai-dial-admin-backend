@@ -146,12 +146,15 @@ public abstract class ActivityAuditFunctionalTest {
     }
 
     private PageRequestDto queryLastActivities(int size) {
-        return new PageRequestDto(0, size, List.of(
+        PageRequestDto request = new PageRequestDto();
+        request.setPageSize(size);
+        request.setSorts(List.of(
                 new SortDto("epochTimestampMs", SortDirection.DESC),
                 new SortDto("activityType", SortDirection.DESC),
                 new SortDto("resourceType", SortDirection.DESC),
                 new SortDto("resourceId", SortDirection.DESC)
-        ), List.of());
+        ));
+        return request;
     }
 
     record AuditActivityEntityId(String activityType, String resourceType, String resourceId) {
