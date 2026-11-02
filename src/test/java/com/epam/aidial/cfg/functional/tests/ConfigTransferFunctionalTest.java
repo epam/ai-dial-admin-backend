@@ -43,6 +43,7 @@ import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.TokenEndpointAuthMethodDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
+import com.epam.aidial.cfg.dto.UpstreamAuthConfigDto;
 import com.epam.aidial.cfg.dto.UpstreamAuthTypeDto;
 import com.epam.aidial.cfg.dto.UpstreamDto;
 import com.epam.aidial.cfg.dto.UpstreamInterfaceDto;
@@ -3785,7 +3786,7 @@ public abstract class ConfigTransferFunctionalTest {
         upstream.setResponsesEndpoint("http://sample.com/responses");
         upstream.setKey("someKey");
         upstream.setExtraData("{\"key1\":\"val1\"}");
-        upstream.setAuthType(UpstreamAuthTypeDto.API_KEY);
+        upstream.setAuthType(UpstreamAuthConfigDto.of(UpstreamAuthTypeDto.API_KEY));
         upstreams.add(upstream);
         routeDto.setUpstreams(upstreams);
 

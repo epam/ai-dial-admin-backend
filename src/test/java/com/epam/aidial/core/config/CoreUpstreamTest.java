@@ -45,7 +45,7 @@ class CoreUpstreamTest {
 
         mappers.forEach(mapper -> {
             CoreUpstream upstream = mapper.readValue(json, CoreUpstream.class);
-            assertThat(upstream.getAuthType()).isEqualTo(CoreUpstreamAuthType.API_KEY);
+            assertThat(upstream.getAuthType()).isEqualTo(CoreUpstreamAuthConfig.of(CoreUpstreamAuthType.API_KEY));
             assertThat(upstream.getInterfaces()).isEmpty();
             assertThat(upstream.getTier()).isZero();
         });
