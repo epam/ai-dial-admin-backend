@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Upstream;
+import com.epam.aidial.cfg.domain.model.UpstreamAuthConfig;
 import com.epam.aidial.cfg.domain.model.UpstreamAuthType;
 import com.epam.aidial.cfg.domain.model.UpstreamInterface;
 import org.apache.commons.collections4.CollectionUtils;
@@ -75,9 +76,9 @@ public class UpstreamValidator {
     }
 
     /**
-     * Validates route-specific upstream requirements. Currently validates that BEARER authType
-     * requires a key to be present. This validation applies only to top-level routes, not models,
-     * as Core ignores authType for model upstreams.
+     * Validates route-specific upstream requirements. Currently validates that any authType other than
+     * API_KEY (BEARER, CUSTOM_HEADER) requires a key to be present. This validation applies only to
+     * top-level routes, not models, as Core ignores authType for model upstreams.
      */
     public void validateForRoutes(List<Upstream> upstreams, String routeName) {
         if (CollectionUtils.isEmpty(upstreams)) {
@@ -86,10 +87,12 @@ public class UpstreamValidator {
 
         for (int i = 0; i < upstreams.size(); i++) {
             Upstream upstream = upstreams.get(i);
-            if (upstream.getAuthType() == UpstreamAuthType.BEARER && StringUtils.isBlank(upstream.getKey())) {
+            UpstreamAuthConfig authType = upstream.getAuthType();
+            if (authType != null && authType.getType() != null && authType.getType() != UpstreamAuthType.API_KEY
+                    && StringUtils.isBlank(upstream.getKey())) {
                 throw new IllegalArgumentException(
-                        "Upstream with authType BEARER requires a key. upstreams[%d]. Route: %s"
-                                .formatted(i, routeName));
+                        "Upstream with authType %s requires a key. upstreams[%d]. Route: %s"
+                                .formatted(authType.getType(), i, routeName));
             }
         }
     }

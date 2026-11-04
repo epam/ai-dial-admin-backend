@@ -30,7 +30,10 @@
         "extraData": "metadata-2",
         "weight": 20,
         "tier": 2,
-        "authType": "api_key"
+        "authType": {
+          "type": "custom_header",
+          "headerName": "X-Api-Token"
+        }
       }
     ],
     "maxRetryAttempts": 3,
