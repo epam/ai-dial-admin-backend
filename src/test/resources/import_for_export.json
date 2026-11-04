@@ -260,7 +260,10 @@
           "secretExtraData": "{\"secret\":\"value1\"}",
           "weight": 1,
           "tier": 0,
-          "authType": "api_key"
+          "authType": {
+            "type": "custom_header",
+            "headerName": "X-Api-Token"
+          }
         },
         {
           "endpoint": "http://upstream2.example.com",

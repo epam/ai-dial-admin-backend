@@ -3,6 +3,9 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
+import com.epam.aidial.cfg.dto.UpstreamAuthConfigDto;
+import com.epam.aidial.cfg.dto.UpstreamAuthTypeDto;
+import com.epam.aidial.cfg.dto.UpstreamDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -224,6 +227,40 @@ public abstract class RouteFunctionalTest {
         assertThat(actualSyncState.getCurrentState()).isEqualTo(currentRouteState);
         assertThat(actualSyncState.getConfigState()).isEqualTo(configRouteState);
         assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS);
+    }
+
+    @Test
+    public void shouldPersistUpstreamAuthTypeIncludingCustomHeader() {
+        RouteDto routeDto = createRouteDtoWithLimits("1");
+        routeDto.setUpstreams(List.of(
+                upstream("http://upstream1", "key1", UpstreamAuthConfigDto.customHeader("X-Api-Token")),
+                upstream("http://upstream2", "key2", UpstreamAuthConfigDto.of(UpstreamAuthTypeDto.BEARER)),
+                upstream("http://upstream3", "key3", UpstreamAuthConfigDto.of(UpstreamAuthTypeDto.API_KEY))));
+
+        routeFacade.createRoute(routeDto);
+
+        List<UpstreamDto> actual = routeFacade.getRoute(routeDto.getName()).getUpstreams();
+        assertThat(actual).extracting(UpstreamDto::getAuthType).containsExactly(
+                UpstreamAuthConfigDto.customHeader("X-Api-Token"),
+                UpstreamAuthConfigDto.of(UpstreamAuthTypeDto.BEARER),
+                UpstreamAuthConfigDto.of(UpstreamAuthTypeDto.API_KEY));
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenUpstreamWithCustomHeaderHasNoKey() {
+        RouteDto routeDto = createRouteDtoWithLimits("1");
+        routeDto.setUpstreams(List.of(
+                upstream("http://upstream1", null, UpstreamAuthConfigDto.customHeader("X-Api-Token"))));
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> routeFacade.createRoute(routeDto));
+    }
+
+    private static UpstreamDto upstream(String endpoint, String key, UpstreamAuthConfigDto authType) {
+        UpstreamDto upstream = new UpstreamDto();
+        upstream.setEndpoint(endpoint);
+        upstream.setKey(key);
+        upstream.setAuthType(authType);
+        return upstream;
     }
 
     private void assertRoute(RouteDto actual, RouteDto expected) {
