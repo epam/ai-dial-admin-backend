@@ -16,8 +16,6 @@ public class CoreShareResourceLimit {
     @JsonAlias({"invitationTtl", "invitation_ttl"})
     Long invitationTtl = -1L;
 
-    plea
-
     public CoreShareResourceLimit() {
 
     }
