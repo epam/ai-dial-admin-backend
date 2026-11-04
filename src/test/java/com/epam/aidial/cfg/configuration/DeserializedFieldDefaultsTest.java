@@ -12,6 +12,7 @@ import com.epam.aidial.core.config.CoreResourceAuthSettings;
 import com.epam.aidial.core.config.CoreShareResourceLimit;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,6 +25,7 @@ class DeserializedFieldDefaultsTest {
 
     private final ObjectMapper mapper = JsonMapperConfiguration.createJsonMapper();
     private final ObjectMapper coreMapper = JsonMapperConfiguration.createCoreJsonMapper();
+    private final ObjectMapper legacyCompatibleMapper = JsonMapperConfiguration.withLegacyCompatibility(JsonMapper.builder()).build();
 
     @Test
     void coreShareResourceLimit_absentProperties_keepUnlimitedDefaults() {
@@ -141,5 +143,18 @@ class DeserializedFieldDefaultsTest {
         ExportConfigComponentDto component = mapper.readValue("{\"name\":\"model\",\"type\":\"MODEL\"}", ExportConfigComponentDto.class);
 
         assertThat(component.getDependencies()).isEmpty();
+    }
+
+    @Test
+    void legacyCompatibilityOnly_absentProperties_keepDefaults() {
+        PageRequestDto page = legacyCompatibleMapper.readValue("{}", PageRequestDto.class);
+        RoleLimit roleLimit = legacyCompatibleMapper.readValue("{\"role\":\"admin\"}", RoleLimit.class);
+        McpResourceDto mcp = legacyCompatibleMapper.readValue("{\"endpoint\":\"http://mcp.test\"}", McpResourceDto.class);
+
+        assertThat(page.getPageSize()).isEqualTo(20);
+        assertThat(page.getSorts()).isEmpty();
+        assertThat(roleLimit.isEnabled()).isTrue();
+        assertThat(mcp.isForwardPerRequestKey()).isTrue();
+        assertThat(mcp.getTransport()).isEqualTo(McpResourceDto.TransportDto.HTTP);
     }
 }
