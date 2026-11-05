@@ -247,6 +247,53 @@ public abstract class RouteFunctionalTest {
     }
 
     @Test
+    public void shouldGetFullySyncedEntitySyncStateWhenUpstreamAuthTypesAreInCoreWireFormat() throws JacksonException {
+        RouteDto routeDto = createRouteDto("1");
+        routeDto.setUpstreams(List.of(
+                upstream("http://upstream1", "key1", UpstreamAuthConfigDto.of(UpstreamAuthTypeDto.API_KEY)),
+                upstream("http://upstream2", "key2", UpstreamAuthConfigDto.of(UpstreamAuthTypeDto.BEARER)),
+                upstream("http://upstream3", "key3", UpstreamAuthConfigDto.customHeader("X-Api-Token"))));
+        routeFacade.createRoute(routeDto);
+
+        // Core always writes authType as an object, with headerName explicitly null unless CUSTOM_HEADER
+        JsonNode config = coreConfigWithUpstreams("""
+                [
+                  {"endpoint": "http://upstream1", "weight": 1, "tier": 0,
+                   "authType": {"type": "API_KEY", "headerName": null}},
+                  {"endpoint": "http://upstream2", "weight": 1, "tier": 0,
+                   "authType": {"type": "BEARER", "headerName": null}},
+                  {"endpoint": "http://upstream3", "weight": 1, "tier": 0,
+                   "authType": {"type": "CUSTOM_HEADER", "headerName": "X-Api-Token"}}
+                ]
+                """);
+        when(coreConfigReloadCache.get()).thenReturn(new CoreConfigReloadCache.Entry(config, 1000));
+
+        EntitySyncStateDto actualSyncState = routeFacade.getSyncState(routeDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(config.get("routes").get("route1"));
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.FULLY_SYNCED);
+    }
+
+    @Test
+    public void shouldGetInProgressEntitySyncStateWhenUpstreamAuthTypeDiffersFromCore() throws JacksonException {
+        RouteDto routeDto = createRouteDto("1");
+        routeDto.setUpstreams(List.of(upstream("http://upstream1", "key1", UpstreamAuthConfigDto.of(UpstreamAuthTypeDto.BEARER))));
+        routeFacade.createRoute(routeDto);
+
+        JsonNode config = coreConfigWithUpstreams("""
+                [
+                  {"endpoint": "http://upstream1", "weight": 1, "tier": 0,
+                   "authType": {"type": "API_KEY", "headerName": null}}
+                ]
+                """);
+        when(coreConfigReloadCache.get()).thenReturn(new CoreConfigReloadCache.Entry(config, 1000));
+
+        EntitySyncStateDto actualSyncState = routeFacade.getSyncState(routeDto.getName(), "*");
+
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS);
+    }
+
+    @Test
     public void shouldThrowExceptionWhenUpstreamWithCustomHeaderHasNoKey() {
         RouteDto routeDto = createRouteDtoWithLimits("1");
         routeDto.setUpstreams(List.of(
@@ -282,6 +329,12 @@ public abstract class RouteFunctionalTest {
     private Map<String, RouteDto> toMap(Collection<RouteDto> dtos) {
         return dtos.stream()
                 .collect(Collectors.toMap(RouteDto::getName, Function.identity()));
+    }
+
+    private JsonNode coreConfigWithUpstreams(String upstreams) throws JacksonException {
+        JsonNode config = coreConfig();
+        ((ObjectNode) config.get("routes").get("route1")).set("upstreams", OBJECT_MAPPER.readTree(upstreams));
+        return config;
     }
 
     private JsonNode coreConfig() throws JacksonException {
