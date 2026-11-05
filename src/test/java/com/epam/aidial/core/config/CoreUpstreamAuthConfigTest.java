@@ -6,6 +6,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -18,7 +19,8 @@ class CoreUpstreamAuthConfigTest {
     private static final String ENDPOINT = "\"endpoint\":\"http://upstream.test/chat\"";
 
     private final ObjectMapper mapper = JsonMapperConfiguration.createJsonMapper();
-    private final List<ObjectMapper> mappers = List.of(mapper, JsonMapperConfiguration.createCoreJsonMapper());
+    private final ObjectMapper coreMapper = JsonMapperConfiguration.createCoreJsonMapper();
+    private final List<ObjectMapper> mappers = List.of(mapper, coreMapper);
 
     @Test
     void authType_defaultsToApiKey() {
@@ -100,8 +102,39 @@ class CoreUpstreamAuthConfigTest {
     @Test
     void serialize_plainType_isString() {
         assertThat(mapper.writeValueAsString(CoreUpstreamAuthConfig.of(CoreUpstreamAuthType.BEARER))).isEqualTo("\"bearer\"");
-        assertThat(JsonMapperConfiguration.createCoreJsonMapper().writeValueAsString(CoreUpstreamAuthConfig.of(CoreUpstreamAuthType.BEARER)))
-                .isEqualTo("\"BEARER\"");
+    }
+
+    @ParameterizedTest
+    @CsvSource({"API_KEY", "BEARER"})
+    void serializeWithCoreMapper_plainType_isObjectWithNullHeaderName(CoreUpstreamAuthType type) {
+        // Core writes its UpstreamAuthConfig record as an object, with headerName explicitly null
+        assertThat(coreMapper.writeValueAsString(CoreUpstreamAuthConfig.of(type)))
+                .isEqualTo("{\"type\":\"" + type.name() + "\",\"headerName\":null}");
+    }
+
+    @Test
+    void serializeWithCoreMapper_customHeader_isObject() {
+        assertThat(coreMapper.writeValueAsString(CoreUpstreamAuthConfig.customHeader("X-Api-Token")))
+                .isEqualTo("{\"type\":\"CUSTOM_HEADER\",\"headerName\":\"X-Api-Token\"}");
+    }
+
+    @Test
+    void serializeWithCoreMapper_insideUpstream_matchesCoreWireFormat() {
+        CoreUpstream upstream = new CoreUpstream();
+        upstream.setEndpoint("http://upstream.test/chat");
+
+        JsonNode node = coreMapper.readTree(coreMapper.writeValueAsString(upstream));
+
+        assertThat(node.get("authType")).isEqualTo(coreMapper.readTree("{\"type\":\"API_KEY\",\"headerName\":null}"));
+    }
+
+    @Test
+    void serializeWithOtherMappers_isNotAffectedByCoreMapperWireFormat() {
+        // the compact form is kept for export to Core / storage: Core reads it, and Core < 0.50.0 requires it
+        CoreUpstream upstream = new CoreUpstream();
+        upstream.setEndpoint("http://upstream.test/chat");
+
+        assertThat(mapper.readTree(mapper.writeValueAsString(upstream)).get("authType").asString()).isEqualTo("api_key");
     }
 
     @Test

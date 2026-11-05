@@ -812,14 +812,14 @@ public abstract class ModelFunctionalTest {
                           "extraData": "{\\"temp\\":800}",
                           "weight": 1,
                           "tier":0,
-                          "authType": "API_KEY"
+                          "authType": {"type": "API_KEY", "headerName": null}
                         },
                         {
                           "endpoint": "http://localhost",
                           "extraData": "{\\"temp\\":951}",
                           "weight": 1,
                           "tier":0,
-                          "authType": "API_KEY"
+                          "authType": {"type": "API_KEY", "headerName": null}
                         }
                       ],
                       "overrideName": null,
