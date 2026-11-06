@@ -9,6 +9,8 @@ import com.epam.aidial.core.config.CoreResourceAuthSettingsMixinForCoreObjectMap
 import com.epam.aidial.core.config.CoreToolSet;
 import com.epam.aidial.core.config.CoreToolSetMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.CoreUpstream;
+import com.epam.aidial.core.config.CoreUpstreamAuthConfig;
+import com.epam.aidial.core.config.CoreUpstreamAuthConfigMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.CoreUpstreamInterface;
 import com.epam.aidial.core.config.CoreUpstreamInterfaceMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.CoreUpstreamMixinForCoreObjectMapper;
@@ -22,6 +24,7 @@ import tools.jackson.core.StreamReadFeature;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.ConstructorDetector;
 import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.cfg.EnumFeature;
 import tools.jackson.databind.json.JsonMapper;
@@ -76,6 +79,7 @@ public class JsonMapperConfiguration {
                 .addMixIn(CoreCostLimit.class, CoreCostLimitMixinForCoreObjectMapper.class)
                 .addMixIn(CoreUpstream.class, CoreUpstreamMixinForCoreObjectMapper.class)
                 .addMixIn(CoreUpstreamInterface.class, CoreUpstreamInterfaceMixinForCoreObjectMapper.class)
+                .addMixIn(CoreUpstreamAuthConfig.class, CoreUpstreamAuthConfigMixinForCoreObjectMapper.class)
                 .addMixIn(CoreToolSet.class, CoreToolSetMixinForCoreObjectMapper.class)
                 .addMixIn(CoreResourceAuthSettings.class, CoreResourceAuthSettingsMixinForCoreObjectMapper.class)
                 .build();
@@ -83,13 +87,15 @@ public class JsonMapperConfiguration {
 
     /**
      * Keeps the behavior that stored data, exported configs and Core payloads rely on, where Jackson 3 changed its defaults:
-     * properties keep their declaration order (constructor properties are not moved first) and null is accepted for primitive properties.
+     * properties keep their declaration order (constructor properties are not moved first), null is accepted for primitive properties
+     * and an implicit all-args constructor is not used when a default constructor exists, so that field initializers survive absent properties.
      */
     public static JsonMapper.Builder withLegacyCompatibility(JsonMapper.Builder builder) {
         return builder
                 .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
                 .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST)
-                .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES);
+                .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+                .constructorDetector(ConstructorDetector.DEFAULT.withAllowImplicitWithDefaultConstructor(false));
     }
 
     private static JsonMapper.Builder createDefaultJsonMapperBuilder() {

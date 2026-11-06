@@ -5,7 +5,9 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +30,11 @@ class CorrelationIdInterceptorTest {
         response = new MockHttpServletResponse();
 
         // Set up minimal OpenTelemetry SDK for testing
-        SdkTracerProvider tracerProvider = SdkTracerProvider.builder().build();
+        // A span processor is required: since opentelemetry-api 1.67.0, SdkTracerProvider.get()
+        // returns a noop Tracer when no span processors are configured.
+        SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
+                .addSpanProcessor(SimpleSpanProcessor.create(InMemorySpanExporter.create()))
+                .build();
 
         openTelemetrySdk = OpenTelemetrySdk.builder()
                 .setTracerProvider(tracerProvider)

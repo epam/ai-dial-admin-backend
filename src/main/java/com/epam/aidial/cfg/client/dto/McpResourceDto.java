@@ -1,5 +1,7 @@
 package com.epam.aidial.cfg.client.dto;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +21,7 @@ public class McpResourceDto {
     @Builder.Default
     private McpConfigDeliveryDto configDelivery = McpConfigDeliveryDto.META;
     @Builder.Default
+    @JsonSetter(nulls = Nulls.SKIP)
     private boolean forwardPerRequestKey = true;
 
     public enum TransportDto {

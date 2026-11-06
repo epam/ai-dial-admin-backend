@@ -1,9 +1,13 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Upstream;
+import com.epam.aidial.cfg.domain.model.UpstreamAuthConfig;
 import com.epam.aidial.cfg.domain.model.UpstreamAuthType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +48,7 @@ class UpstreamValidatorTest {
         // given
         Upstream upstream = new Upstream();
         upstream.setEndpoint("http://localhost");
-        upstream.setAuthType(UpstreamAuthType.API_KEY);
+        upstream.setAuthType(UpstreamAuthConfig.of(UpstreamAuthType.API_KEY));
         upstream.setKey(null);
 
         List<Upstream> upstreams = List.of(upstream);
@@ -60,7 +64,7 @@ class UpstreamValidatorTest {
         // given
         Upstream upstream = new Upstream();
         upstream.setEndpoint("http://localhost");
-        upstream.setAuthType(UpstreamAuthType.API_KEY);
+        upstream.setAuthType(UpstreamAuthConfig.of(UpstreamAuthType.API_KEY));
         upstream.setKey("test-key");
 
         List<Upstream> upstreams = List.of(upstream);
@@ -76,7 +80,7 @@ class UpstreamValidatorTest {
         // given
         Upstream upstream = new Upstream();
         upstream.setEndpoint("http://localhost");
-        upstream.setAuthType(UpstreamAuthType.BEARER);
+        upstream.setAuthType(UpstreamAuthConfig.of(UpstreamAuthType.BEARER));
         upstream.setKey("test-key");
 
         List<Upstream> upstreams = List.of(upstream);
@@ -92,7 +96,7 @@ class UpstreamValidatorTest {
         // given
         Upstream upstream = new Upstream();
         upstream.setEndpoint("http://localhost");
-        upstream.setAuthType(UpstreamAuthType.BEARER);
+        upstream.setAuthType(UpstreamAuthConfig.of(UpstreamAuthType.BEARER));
         upstream.setKey(null);
 
         List<Upstream> upstreams = List.of(upstream);
@@ -112,7 +116,7 @@ class UpstreamValidatorTest {
         // given
         Upstream upstream = new Upstream();
         upstream.setEndpoint("http://localhost");
-        upstream.setAuthType(UpstreamAuthType.BEARER);
+        upstream.setAuthType(UpstreamAuthConfig.of(UpstreamAuthType.BEARER));
         upstream.setKey("");
 
         List<Upstream> upstreams = List.of(upstream);
@@ -132,7 +136,7 @@ class UpstreamValidatorTest {
         // given
         Upstream upstream = new Upstream();
         upstream.setEndpoint("http://localhost");
-        upstream.setAuthType(UpstreamAuthType.BEARER);
+        upstream.setAuthType(UpstreamAuthConfig.of(UpstreamAuthType.BEARER));
         upstream.setKey("   ");
 
         List<Upstream> upstreams = List.of(upstream);
@@ -152,12 +156,12 @@ class UpstreamValidatorTest {
         // given
         Upstream validUpstream = new Upstream();
         validUpstream.setEndpoint("http://localhost");
-        validUpstream.setAuthType(UpstreamAuthType.API_KEY);
+        validUpstream.setAuthType(UpstreamAuthConfig.of(UpstreamAuthType.API_KEY));
         validUpstream.setKey("test-key");
 
         Upstream invalidUpstream = new Upstream();
         invalidUpstream.setEndpoint("http://localhost2");
-        invalidUpstream.setAuthType(UpstreamAuthType.BEARER);
+        invalidUpstream.setAuthType(UpstreamAuthConfig.of(UpstreamAuthType.BEARER));
         invalidUpstream.setKey(null);
 
         List<Upstream> upstreams = List.of(validUpstream, invalidUpstream);
@@ -176,12 +180,12 @@ class UpstreamValidatorTest {
         // given
         Upstream apiKeyUpstream = new Upstream();
         apiKeyUpstream.setEndpoint("http://localhost");
-        apiKeyUpstream.setAuthType(UpstreamAuthType.API_KEY);
+        apiKeyUpstream.setAuthType(UpstreamAuthConfig.of(UpstreamAuthType.API_KEY));
         apiKeyUpstream.setKey(null);
 
         Upstream bearerUpstream = new Upstream();
         bearerUpstream.setEndpoint("http://localhost2");
-        bearerUpstream.setAuthType(UpstreamAuthType.BEARER);
+        bearerUpstream.setAuthType(UpstreamAuthConfig.of(UpstreamAuthType.BEARER));
         bearerUpstream.setKey("bearer-token");
 
         List<Upstream> upstreams = List.of(apiKeyUpstream, bearerUpstream);
@@ -198,6 +202,60 @@ class UpstreamValidatorTest {
         Upstream upstream = new Upstream();
         upstream.setEndpoint("http://localhost");
         upstream.setAuthType(null);
+        upstream.setKey(null);
+
+        List<Upstream> upstreams = List.of(upstream);
+
+        // when/then
+        assertThatNoException().isThrownBy(() ->
+                upstreamValidator.validateForRoutes(upstreams, "test-route")
+        );
+    }
+
+    @Test
+    void validateForRoutes_shouldPassWhenAuthTypeIsCustomHeaderWithKey() {
+        // given
+        Upstream upstream = new Upstream();
+        upstream.setEndpoint("http://localhost");
+        upstream.setAuthType(UpstreamAuthConfig.customHeader("X-Api-Token"));
+        upstream.setKey("secret");
+
+        List<Upstream> upstreams = List.of(upstream);
+
+        // when/then
+        assertThatNoException().isThrownBy(() ->
+                upstreamValidator.validateForRoutes(upstreams, "test-route")
+        );
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" "})
+    void validateForRoutes_shouldFailWhenAuthTypeIsCustomHeaderWithoutKey(String key) {
+        // given
+        Upstream upstream = new Upstream();
+        upstream.setEndpoint("http://localhost");
+        upstream.setAuthType(UpstreamAuthConfig.customHeader("X-Api-Token"));
+        upstream.setKey(key);
+
+        List<Upstream> upstreams = List.of(upstream);
+
+        // when/then
+        assertThatThrownBy(() ->
+                upstreamValidator.validateForRoutes(upstreams, "test-route")
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Upstream with authType CUSTOM_HEADER requires a key")
+                .hasMessageContaining("upstreams[0]")
+                .hasMessageContaining("Route: test-route");
+    }
+
+    @Test
+    void validateForRoutes_shouldPassWhenAuthTypeTypeIsNullWithoutKey() {
+        // given
+        Upstream upstream = new Upstream();
+        upstream.setEndpoint("http://localhost");
+        upstream.setAuthType(new UpstreamAuthConfig());
         upstream.setKey(null);
 
         List<Upstream> upstreams = List.of(upstream);
