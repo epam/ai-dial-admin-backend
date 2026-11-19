@@ -1,5 +1,11 @@
 # AIDIAL Admin Panel Backend
 
+> [!IMPORTANT]
+> **This project is being decommissioned.** The next release, **0.24.0**, will be the last release of AIDIAL Admin Panel Backend.
+> After it, no further features, fixes or security updates will be published, and the repository is expected to be archived.
+> DIAL Core manages its own configuration, and Admin Frontend connects to Core directly.
+> To migrate, follow the [decommissioning runbook](docs/admin-backend-decommission.md).
+
 [![Java Version](https://img.shields.io/badge/Java-17-blue.svg)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-green.svg)](https://spring.io/projects/spring-boot)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
@@ -14,6 +20,7 @@ For more information about aidial-core, visit the [aidial-core repository](https
 
 - [AIDIAL Admin Panel Backend](#aidial-admin-panel-backend)
   - [Table of Contents](#table-of-contents)
+  - [Decommissioning](#decommissioning)
   - [Prerequisites](#prerequisites)
   - [Features](#features)
   - [REST API](#rest-api)
@@ -30,6 +37,18 @@ For more information about aidial-core, visit the [aidial-core repository](https
   - [Security](#security)
   - [Contributing](#contributing)
   - [License](#license)
+
+## Decommissioning
+
+Release **0.24.0** will be the last release of this project. After it, no further updates will be published.
+
+DevOps teams that run DIAL and want to stop using admin-backend should follow the
+[decommissioning runbook](docs/admin-backend-decommission.md). It covers how to move DIAL Core's configuration into
+Core's own storage, switch Admin Frontend to talk to Core directly, remove admin-backend, and roll back if needed.
+
+Requirements for the migration:
+- DIAL Core 0.50.0 or later (to migrate configuration into blob storage; 0.51.0 or later if your config files define routers or plugins)
+- Admin Frontend 0.22 or later
 
 ## Prerequisites
 
